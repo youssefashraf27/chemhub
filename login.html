@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - Chemistry Hub</title>
-    <!-- مكتبة Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- مكتبة Supabase المستقرة -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -114,18 +114,22 @@
             font-size: 0.85rem;
         }
 
-        .links-container a {
+        .links-container button {
+            background: none;
+            border: none;
             color: #38bdf8;
-            text-decoration: none;
             cursor: pointer;
-        }
-
-        .links-container a:hover {
+            font-size: 0.85rem;
+            padding: 0;
             text-decoration: underline;
         }
 
+        .links-container button:hover {
+            color: #7dd3fc;
+        }
+
         .back-link {
-            margin-top: 15px;
+            margin-top: 20px;
             display: block;
             font-size: 0.85rem;
             color: #94a3b8;
@@ -159,8 +163,8 @@
         </form>
 
         <div class="links-container">
-            <a id="resetPasswordBtn">نسيت كلمة المرور؟</a>
-            <a id="toggleModeBtn">إنشاء حساب جديد</a>
+            <button type="button" onclick="switchMode('reset')">نسيت كلمة المرور؟</button>
+            <button type="button" id="toggleBtn" onclick="toggleSignupLogin()">إنشاء حساب جديد</button>
         </div>
 
         <a href="https://chemistryhub.vercel.app/#subjects" class="back-link">العودة للموقع الرئيسي</a>
@@ -170,113 +174,125 @@
         const SUPABASE_URL = "https://egpirypsqsxdwkhdqcic.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_pyP45jE5VbutNadBRrvfrw_q0_L7_A3";
 
-        // التصحيح الأساسي لإستدعاء المكتبة بنجاح
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabaseClient = null;
 
-        const authForm = document.getElementById('authForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const statusMessage = document.getElementById('statusMessage');
-        const cardSubtitle = document.getElementById('cardSubtitle');
-        const passwordGroup = document.getElementById('passwordGroup');
-        const toggleModeBtn = document.getElementById('toggleModeBtn');
-        const resetPasswordBtn = document.getElementById('resetPasswordBtn');
-        const passwordInput = document.getElementById('password');
+        // تهيئة Supabase عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        });
 
         let currentMode = 'login';
 
-        toggleModeBtn.addEventListener('click', () => {
+        function toggleSignupLogin() {
             if (currentMode === 'login') {
-                currentMode = 'signup';
-                cardSubtitle.textContent = "إنشاء حساب جديد";
+                switchMode('signup');
+            } else {
+                switchMode('login');
+            }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            const subtitle = document.getElementById('cardSubtitle');
+            const submitBtn = document.getElementById('submitBtn');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const passwordGroup = document.getElementById('passwordGroup');
+            const passwordInput = document.getElementById('password');
+
+            clearStatus();
+
+            if (mode === 'signup') {
+                subtitle.textContent = "إنشاء حساب جديد";
                 submitBtn.textContent = "إنشاء الحساب";
-                toggleModeBtn.textContent = "لديك حساب بالفعل؟ تسجيل الدخول";
+                toggleBtn.textContent = "لديك حساب بالفعل؟ تسجيل الدخول";
                 passwordGroup.style.display = "block";
                 passwordInput.required = true;
+            } else if (mode === 'reset') {
+                subtitle.textContent = "استعادة كلمة المرور";
+                submitBtn.textContent = "إرسال رابط إعادة التعيين";
+                toggleBtn.textContent = "العودة لتسجيل الدخول";
+                passwordGroup.style.display = "none";
+                passwordInput.required = false;
             } else {
-                setLoginMode();
+                subtitle.textContent = "تسجيل الدخول للموقع";
+                submitBtn.textContent = "تسجيل الدخول";
+                toggleBtn.textContent = "إنشاء حساب جديد";
+                passwordGroup.style.display = "block";
+                passwordInput.required = true;
             }
-            clearStatus();
-        });
-
-        resetPasswordBtn.addEventListener('click', () => {
-            currentMode = 'reset';
-            cardSubtitle.textContent = "استعادة كلمة المرور";
-            submitBtn.textContent = "إرسال رابط وإعادة الضبط";
-            passwordGroup.style.display = "none";
-            passwordInput.required = false;
-            toggleModeBtn.textContent = "العودة لتسجيل الدخول";
-            clearStatus();
-        });
-
-        function setLoginMode() {
-            currentMode = 'login';
-            cardSubtitle.textContent = "تسجيل الدخول للموقع";
-            submitBtn.textContent = "تسجيل الدخول";
-            toggleModeBtn.textContent = "إنشاء حساب جديد";
-            passwordGroup.style.display = "block";
-            passwordInput.required = true;
         }
 
         function clearStatus() {
+            const statusMessage = document.getElementById('statusMessage');
             statusMessage.style.display = "none";
         }
 
         function showMessage(msg, isError = true) {
+            const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = msg;
             statusMessage.style.color = isError ? "#f87171" : "#4ade80";
             statusMessage.style.display = "block";
         }
 
-        authForm.addEventListener('submit', async function(e) {
+        document.getElementById('authForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
+            if (!supabaseClient) {
+                if (window.supabase) {
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                } else {
+                    showMessage("تعذر الاتصال بخادم التسجيل، يرجى إعادة تحديث الصفحة.");
+                    return;
+                }
+            }
+
             const email = document.getElementById('email').value;
-            const password = passwordInput.value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
 
             submitBtn.disabled = true;
             clearStatus();
 
-            if (currentMode === 'login') {
-                submitBtn.textContent = "جاري التحقق...";
-                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-                if (error) {
-                    showMessage("خطأ: البريد أو كلمة المرور غير صحيحة");
+            try {
+                if (currentMode === 'login') {
+                    submitBtn.textContent = "جاري التحقق...";
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) {
+                        showMessage("خطأ: البريد أو كلمة المرور غير صحيحة");
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "تسجيل الدخول";
+                    } else {
+                        window.location.href = "https://chemistryhub.vercel.app/#subjects";
+                    }
+                } else if (currentMode === 'signup') {
+                    submitBtn.textContent = "جاري إنشاء الحساب...";
+                    const { error } = await supabaseClient.auth.signUp({ email, password });
+                    if (error) {
+                        showMessage("خطأ في إنشاء الحساب: " + error.message);
+                    } else {
+                        showMessage("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.", false);
+                        setTimeout(() => switchMode('login'), 2000);
+                    }
                     submitBtn.disabled = false;
-                    submitBtn.textContent = "تسجيل الدخول";
-                } else {
-                    window.location.href = "https://chemistryhub.vercel.app/#subjects";
+                    submitBtn.textContent = "إنشاء الحساب";
+                } else if (currentMode === 'reset') {
+                    submitBtn.textContent = "جاري الإرسال...";
+                    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+                    if (error) {
+                        showMessage("حدث خطأ: " + error.message);
+                    } else {
+                        showMessage("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.", false);
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "إرسال رابط إعادة التعيين";
                 }
-
-            } else if (currentMode === 'signup') {
-                submitBtn.textContent = "جاري إنشاء الحساب...";
-                const { error } = await supabaseClient.auth.signUp({ email, password });
-
-                if (error) {
-                    showMessage("خطأ في إنشاء الحساب: " + error.message);
-                } else {
-                    showMessage("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.", false);
-                    setTimeout(setLoginMode, 2000);
-                }
+            } catch (err) {
+                showMessage("حدث خطأ غير متوقع، يرجى المحاولة لاحقاً");
                 submitBtn.disabled = false;
-                submitBtn.textContent = "إنشاء الحساب";
-
-            } else if (currentMode === 'reset') {
-                submitBtn.textContent = "جاري الإرسال...";
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: 'https://chemistryhub.vercel.app/login.html'
-                });
-
-                if (error) {
-                    showMessage("حدث خطأ: " + error.message);
-                } else {
-                    showMessage("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.", false);
-                }
-                submitBtn.disabled = false;
-                submitBtn.textContent = "إرسال رابط وإعادة الضبط";
             }
         });
     </script>
-
 </body>
 </html>
