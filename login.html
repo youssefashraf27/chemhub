@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - Chemistry Hub</title>
+    <!-- تضمين مكتبة Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -94,21 +96,28 @@
             background-color: #0369a1;
         }
 
-        .btn-submit:active {
-            transform: scale(0.98);
+        .btn-submit:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
+        }
+
+        #errorMessage {
+            color: #f87171;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            display: none;
         }
 
         .links-container {
             margin-top: 20px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             font-size: 0.85rem;
         }
 
         .links-container a {
             color: #38bdf8;
             text-decoration: none;
-            transition: color 0.2s;
         }
 
         .links-container a:hover {
@@ -120,34 +129,67 @@
 
     <div class="login-card">
         <h1 class="brand-title">Chemistry Hub</h1>
-        <p class="subtitle">قم بتسجيل الدخول للوصول إلى المواد والمحتوى</p>
+        <p class="subtitle">تسجيل الدخول باستخدام Supabase</p>
 
         <form id="loginForm">
             <div class="form-group">
-                <label for="email">البريد الإلكتروني / اسم المستخدم</label>
-                <input type="text" id="email" name="email" placeholder="example@mail.com" required>
+                <label for="email">البريد الإلكتروني</label>
+                <input type="email" id="email" placeholder="example@mail.com" required>
             </div>
 
             <div class="form-group">
                 <label for="password">كلمة المرور</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
+                <input type="password" id="password" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn-submit">تسجيل الدخول</button>
+            <button type="submit" id="submitBtn" class="btn-submit">تسجيل الدخول</button>
+            <p id="errorMessage"></p>
         </form>
 
         <div class="links-container">
-            <a href="#">نسيت كلمة المرور؟</a>
-            <a href="#">إنشاء حساب جديد</a>
+            <a href="https://chemistryhub.vercel.app/#subjects">العودة للموقع بدون تسجيل</a>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // 1. ضع بيانات Supabase الخاصة بك هنا
+        const SUPABASE_URL = "ضع_رابط_المشروع_هنا"; 
+        const SUPABASE_ANON_KEY = "ضع_المفتاح_العام_anon_key_هنا";
+
+        // 2. تهيئة مكتبة Supabase
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // 3. معالجة تسجيل الدخول عند الضغط على الزر
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // التوجيه المباشر إلى قسم المواد بالموقع بعد تسجيل الدخول
-            window.location.href = "https://chemistryhub.vercel.app/#subjects";
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "جاري التحقق...";
+            errorMessage.style.display = "none";
+
+            // إرسال طلب تسجيل الدخول لـ Supabase
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                // في حالة وجود خطأ (بيانات غلط أو حساب غير موجود)
+                errorMessage.textContent = "خطأ: " + error.message;
+                errorMessage.style.display = "block";
+                submitBtn.disabled = false;
+                submitBtn.textContent = "تسجيل الدخول";
+            } else {
+                // في حالة نجاح تسجيل الدخول -> التوجيه للموقع
+                window.location.href = "https://chemistryhub.vercel.app/#subjects";
+            }
         });
     </script>
 
