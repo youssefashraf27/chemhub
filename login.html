@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - Chemistry Hub</title>
-    <!-- تضمين مكتبة Supabase -->
+    <!-- مكتبة Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -129,7 +129,7 @@
 
     <div class="login-card">
         <h1 class="brand-title">Chemistry Hub</h1>
-        <p class="subtitle">تسجيل الدخول باستخدام Supabase</p>
+        <p class="subtitle">تسجيل الدخول للموقع</p>
 
         <form id="loginForm">
             <div class="form-group">
@@ -147,23 +147,24 @@
         </form>
 
         <div class="links-container">
-            <a href="https://chemistryhub.vercel.app/#subjects">العودة للموقع بدون تسجيل</a>
+            <a href="https://chemistryhub.vercel.app/#subjects">العودة للموقع الرئيسي</a>
         </div>
     </div>
 
     <script>
-        // 1. ضع بيانات Supabase الخاصة بك هنا
+        // رابط مشروعك الخاص بـ Supabase
         const SUPABASE_URL = "https://egpirypsqsxdwkhdqcic.supabase.co"; 
-        const SUPABASE_ANON_KEY = "https://egpirypsqsxdwkhdqcic.supabase.co";
+        
+        // مفتاح API الخاص بك (Publishable Key)
+        const SUPABASE_ANON_KEY = "sb_publishable_pyP45jE5VbutNadBRrvfrw_q0_L7_A3";
 
-        // 2. تهيئة مكتبة Supabase
+        // تهيئة اتصال Supabase
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const loginForm = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
         const errorMessage = document.getElementById('errorMessage');
 
-        // 3. معالجة تسجيل الدخول عند الضغط على الزر
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -174,20 +175,19 @@
             submitBtn.textContent = "جاري التحقق...";
             errorMessage.style.display = "none";
 
-            // إرسال طلب تسجيل الدخول لـ Supabase
+            // عملية التحقق من الحساب في Supabase
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
 
             if (error) {
-                // في حالة وجود خطأ (بيانات غلط أو حساب غير موجود)
-                errorMessage.textContent = "خطأ: " + error.message;
+                errorMessage.textContent = "خطأ في تسجيل الدخول: البريد أو كلمة المرور غير صحيحة";
                 errorMessage.style.display = "block";
                 submitBtn.disabled = false;
                 submitBtn.textContent = "تسجيل الدخول";
             } else {
-                // في حالة نجاح تسجيل الدخول -> التوجيه للموقع
+                // التحويل التلقائي للموقع بعد النجاح
                 window.location.href = "https://chemistryhub.vercel.app/#subjects";
             }
         });
