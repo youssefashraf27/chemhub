@@ -170,7 +170,8 @@
         const SUPABASE_URL = "https://egpirypsqsxdwkhdqcic.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_pyP45jE5VbutNadBRrvfrw_q0_L7_A3";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // التصحيح الأساسي لإستدعاء المكتبة بنجاح
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const authForm = document.getElementById('authForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -181,9 +182,8 @@
         const resetPasswordBtn = document.getElementById('resetPasswordBtn');
         const passwordInput = document.getElementById('password');
 
-        let currentMode = 'login'; // Modes: 'login', 'signup', 'reset'
+        let currentMode = 'login';
 
-        // التبديل بين تسجيل الدخول وإنشاء حساب جديد
         toggleModeBtn.addEventListener('click', () => {
             if (currentMode === 'login') {
                 currentMode = 'signup';
@@ -198,7 +198,6 @@
             clearStatus();
         });
 
-        // التبديل إلى وضع نسيت كلمة المرور
         resetPasswordBtn.addEventListener('click', () => {
             currentMode = 'reset';
             cardSubtitle.textContent = "استعادة كلمة المرور";
@@ -228,7 +227,6 @@
             statusMessage.style.display = "block";
         }
 
-        // معالجة إرسال النموذج حسب الوضع الحالي
         authForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -240,7 +238,7 @@
 
             if (currentMode === 'login') {
                 submitBtn.textContent = "جاري التحقق...";
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
                 if (error) {
                     showMessage("خطأ: البريد أو كلمة المرور غير صحيحة");
@@ -252,7 +250,7 @@
 
             } else if (currentMode === 'signup') {
                 submitBtn.textContent = "جاري إنشاء الحساب...";
-                const { error } = await supabase.auth.signUp({ email, password });
+                const { error } = await supabaseClient.auth.signUp({ email, password });
 
                 if (error) {
                     showMessage("خطأ في إنشاء الحساب: " + error.message);
@@ -265,7 +263,7 @@
 
             } else if (currentMode === 'reset') {
                 submitBtn.textContent = "جاري الإرسال...";
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                     redirectTo: 'https://chemistryhub.vercel.app/login.html'
                 });
 
