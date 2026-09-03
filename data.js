@@ -88,7 +88,7 @@ const subjectFiles = {
     { title: "ملف الجيولوجيا", file: "pdf/geology.pdf" }
   ],
   "كيمياء غير عضوية": [
-    { title: "ملف الكيمياء غير العضوية", file: "pdf/inorganic-chemistry.pdf" }
+    { title: "ملف الكيمياء غير العضوية", file: "الكيمياء العامة 2 (1).pdf" }
   ],
   "علوم بيئية": [
     { title: "ملف العلوم البيئية", file: "pdf/environmental-science.pdf" }
