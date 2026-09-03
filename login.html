@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - Chemistry Hub</title>
-    <!-- مكتبة Supabase المستقرة -->
+    <!-- مكتبة Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -88,7 +88,7 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background-color 0.2s;
             margin-top: 10px;
         }
 
@@ -172,11 +172,10 @@
 
     <script>
         const SUPABASE_URL = "https://egpirypsqsxdwkhdqcic.supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_pyP45jE5VbutNadBRrvfrw_q0_L7_A3";
+        const SUPABASE_ANON_KEY = "sb_publishable_pyP45jE5VbutNadBRrvfrw_qO_L7utA";
 
         let supabaseClient = null;
 
-        // تهيئة Supabase عند تحميل الصفحة
         window.addEventListener('DOMContentLoaded', () => {
             if (window.supabase) {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
