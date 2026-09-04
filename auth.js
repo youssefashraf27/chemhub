@@ -1,85 +1,124 @@
-/* Shared Supabase auth helpers for ChemistryHub */
-let supabaseClient;
+// ===============================
+// ChemistryHub Authentication
+// ===============================
 
-function initSupabase() {
-  if (!window.supabase) throw new Error("Supabase library لم يتم تحميلها.");
-  if (!supabaseClient) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  return supabaseClient;
+const { data: { session } } = await supabaseClient.auth.getSession();
+
+window.currentSession = session;
+window.currentUser = session?.user || null;
+
+
+// --------------------------------
+// التحقق من تسجيل الدخول
+// --------------------------------
+
+async function requireLogin() {
+    const { data: { session } } =
+        await supabaseClient.auth.getSession();
+
+    if (!session) {
+        return false;
+    }
+
+    window.currentSession = session;
+    window.currentUser = session.user;
+
+    return true;
 }
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, ch => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[ch]));
+
+// --------------------------------
+// رسالة للمستخدم غير المسجل
+// --------------------------------
+
+function showLoginRequired(message = "سجّل دخولك لاستخدام هذه الخدمة") {
+
+    const ok = confirm(
+        message + "\n\nهل تريد تسجيل الدخول الآن؟"
+    );
+
+    if (ok) {
+        window.location.href = "login.html";
+    }
 }
 
-function getDisplayName(user) {
-  return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "الطالب";
-}
 
-function isAdmin(user) {
-  return user?.app_metadata?.role === "admin";
-}
-
-async function getCurrentUser() {
-  const client = initSupabase();
-  const { data: { user }, error } = await client.auth.getUser();
-  if (error) throw error;
-  return user;
-}
+// --------------------------------
+// تسجيل الخروج
+// --------------------------------
 
 async function logout() {
-  try {
-    const client = initSupabase();
-    const { error } = await client.auth.signOut();
-    if (error) throw error;
-  } finally {
-    window.location.href = "login.html";
-  }
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href = "index.html";
 }
 
-function renderAuthUI(user) {
-  const box = document.getElementById("accountBox");
-  if (!box) return;
 
-  if (!user) {
-    box.innerHTML = `<a class="account-login" href="login.html">تسجيل الدخول</a>`;
-    return;
-  }
+// --------------------------------
+// حماية خدمة معينة
+// --------------------------------
 
-  const name = escapeHTML(getDisplayName(user));
-  const email = escapeHTML(user.email || "");
-  const adminLink = isAdmin(user) ? `<a href="admin.html">لوحة الإدارة</a>` : "";
+async function protectService(callback) {
 
-  box.innerHTML = `
-    <div class="account-menu">
-      <button class="account-toggle" id="accountToggle" type="button" aria-expanded="false">
-        <span class="account-avatar">${name.slice(0,1)}</span>
-        <span class="account-label"><strong>${name}</strong><small>${email}</small></span>
-        <span>⌄</span>
-      </button>
-      <div class="account-dropdown" id="accountDropdown">
-        <div class="account-summary"><strong>${name}</strong><small>${email}</small></div>
-        ${adminLink}
-        <a href="account.html">حسابي</a>
-        <button type="button" onclick="logout()">تسجيل الخروج</button>
-      </div>
-    </div>`;
+    const loggedIn = await requireLogin();
 
-  const toggle = document.getElementById("accountToggle");
-  const dropdown = document.getElementById("accountDropdown");
-  toggle.addEventListener("click", e => {
-    e.stopPropagation();
-    const open = dropdown.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", open ? "true" : "false");
-  });
-  document.addEventListener("click", () => dropdown.classList.remove("open"), { once: true });
+    if (!loggedIn) {
+        showLoginRequired();
+        return;
+    }
+
+    callback();
 }
 
-async function setupAuthUI() {
-  const client = initSupabase();
-  const { data: { user } } = await client.auth.getUser();
-  renderAuthUI(user);
-  client.auth.onAuthStateChange((_event, session) => renderAuthUI(session?.user || null));
-  return user;
+
+// --------------------------------
+// حماية صفحة كاملة
+// --------------------------------
+
+async function protectPage() {
+
+    const loggedIn = await requireLogin();
+
+    if (!loggedIn) {
+        document.body.innerHTML = `
+            <div style="
+                min-height:100vh;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                text-align:center;
+                padding:30px;
+                font-family:Arial;
+            ">
+
+                <div>
+
+                    <h2>🔒 هذه الصفحة للمستخدمين المسجلين</h2>
+
+                    <p>
+                        سجّل دخولك أولًا للوصول إلى هذه الصفحة.
+                    </p>
+
+                    <button
+                        onclick="location.href='login.html'"
+                        style="
+                            padding:12px 25px;
+                            border:none;
+                            border-radius:10px;
+                            cursor:pointer;
+                        "
+                    >
+                        تسجيل الدخول
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        return false;
+    }
+
+    return true;
 }
