@@ -1,23 +1,825 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+
 if($('#year'))$('#year').textContent=new Date().getFullYear();
-if($('#menuBtn'))$('#menuBtn').onclick=()=>{const n=$('#navLinks');n.style.display=n.style.display==='flex'?'none':'flex'};
-if($('#themeBtn'))$('#themeBtn').onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('chemistryTheme',document.documentElement.classList.contains('dark')?'dark':'light')};
-if(localStorage.getItem('chemistryTheme')==='dark')document.documentElement.classList.add('dark');
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+
+if($('#menuBtn'))
+  $('#menuBtn').onclick=()=>{
+    const n=$('#navLinks');
+    n.style.display=n.style.display==='flex'?'none':'flex';
+  };
+
+if($('#themeBtn'))
+  $('#themeBtn').onclick=()=>{
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem(
+      'chemistryTheme',
+      document.documentElement.classList.contains('dark')
+        ?'dark'
+        :'light'
+    );
+  };
+
+if(localStorage.getItem('chemistryTheme')==='dark')
+  document.documentElement.classList.add('dark');
+
+
+const esc=x=>
+  String(x??'').replace(
+    /[&<>"']/g,
+    c=>({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#039;'
+    }[c])
+  );
+
+
 let dynamicSubjects=[];
+
+
 async function loadHomeData(){
- const [yrs,subs,serv,ann,set]=await Promise.all([client.from('ch_years').select('*').eq('active',true).order('sort_order'),client.from('ch_subjects').select('*,ch_years(year_number,title)').eq('active',true).order('sort_order'),client.from('ch_services').select('*').eq('active',true).order('sort_order'),client.from('ch_announcements').select('*').eq('active',true).order('sort_order'),client.from('site_settings').select('key,value')]);
- if(yrs.error||subs.error)throw(yrs.error||subs.error);dynamicSubjects=subs.data||[];renderYears(yrs.data||[]);renderServices(serv.data||[]);renderAnnouncements(ann.data||[]);applySettings(set.data||[]);$$('.year-card').forEach(c=>c.onclick=()=>renderYear(c.dataset.year));
+
+  const [
+    yrs,
+    subs,
+    serv,
+    ann,
+    set
+  ]=await Promise.all([
+
+    client
+      .from('ch_years')
+      .select('*')
+      .eq('active',true)
+      .order('sort_order'),
+
+    client
+      .from('ch_subjects')
+      .select('*,ch_years(year_number,title)')
+      .eq('active',true)
+      .order('sort_order'),
+
+    client
+      .from('ch_services')
+      .select('*')
+      .eq('active',true)
+      .order('sort_order'),
+
+    client
+      .from('ch_announcements')
+      .select('*')
+      .eq('active',true)
+      .order('sort_order'),
+
+    client
+      .from('site_settings')
+      .select('key,value')
+
+  ]);
+
+
+  if(yrs.error||subs.error)
+    throw(yrs.error||subs.error);
+
+
+  dynamicSubjects=subs.data||[];
+
+
+  renderYears(yrs.data||[]);
+
+  renderServices(serv.data||[]);
+
+  renderAnnouncements(ann.data||[]);
+
+  applySettings(set.data||[]);
+
+
+  $$('.year-card').forEach(c=>
+    c.onclick=()=>renderYear(c.dataset.year)
+  );
+
 }
-function renderYears(ys){const box=$('#yearsGrid');if(!box)return;box.innerHTML=ys.map(y=>`<article class="card year-card" data-year="${y.year_number}"><span class="card-icon">${esc(y.icon||'🎓')}</span><h3>${esc(y.title)}</h3><p>${esc(y.description||'')}</p><button class="text-btn">عرض الفصول ←</button></article>`).join('')||'<div class="card empty">لا توجد فرق مضافة بعد.</div>'}
-function renderYear(year){const view=$('#subjectView');if(!view)return;const list=dynamicSubjects.filter(s=>String(s.ch_years?.year_number)===String(year));const groups={};list.forEach(s=>(groups[s.semester]??=[]).push(s));let html=`<div class="section-head"><span class="eyebrow">الفرقة ${esc(year)}</span><h2>الفصول الدراسية</h2><p>أسماء المواد متاحة للاستكشاف؛ فتح ملفات المادة يحتاج تسجيل دخول.</p></div>`;for(const [sem,arr] of Object.entries(groups)){html+=`<div class="semester"><h3>📚 ${esc(sem)}</h3><div class="subject-grid">${arr.map(s=>`<a class="subject" href="subject.html?subject=${encodeURIComponent(s.id)}" onclick="event.preventDefault();protectService(()=>location.href=this.href,'فتح ملفات المادة يحتاج تسجيل دخول.')"><div><strong>${esc(s.name)}</strong><small>${esc(s.teacher||'')}</small></div><b>${esc(s.grade_label||'—')}</b></a>`).join('')}</div></div>`}if(!list.length)html+=`<div class="card empty">لا توجد مواد مضافة لهذه الفرقة بعد.</div>`;view.innerHTML=html;location.hash='subjects'}
-function renderServices(list){const box=$('#servicesGrid');if(!box)return;box.innerHTML=list.map(s=>{let href=s.link||'#';if(href==='#'&&s.title.includes('المحاضرات'))href='#subjects';return `<article class="card tool"><span class="card-icon">${esc(s.icon||'✨')}</span><h3>${esc(s.title)}</h3><p>${esc(s.description||'')}</p><a class="btn small" href="${esc(href)}" ${/^https?:/i.test(href)?'target="_blank" rel="noopener"':''} onclick="return handleService(event,${JSON.stringify(!!s.requires_login)},'${esc(s.title)}')">فتح الخدمة</a></article>`}).join('')||'<div class="card">لا توجد خدمات.</div>'}
-window.handleService=async(e,requires,title)=>{if(!requires)return true;e.preventDefault();if(await requireLogin())location.href=e.currentTarget.href;else showLoginRequired('استخدام '+title+' يحتاج تسجيل دخول.');return false};
-function renderAnnouncements(list){const box=$('#announcements');if(!box)return;box.innerHTML=list.map(a=>`<article class="card announcement"><strong>📢 ${esc(a.title)}</strong><p>${esc(a.body||'')}</p>${a.link?`<a class="text-btn" href="${esc(a.link)}">التفاصيل ←</a>`:''}</article>`).join('')}
-function applySettings(rows){const s={};rows.forEach(x=>s[x.key]=x.value);const text=(id,key)=>{const el=$(id);if(el&&s[key]!=null)el.textContent=s[key]};const html=(id,key)=>{const el=$(id);if(el&&s[key]!=null)el.innerHTML=s[key]};html('#heroTitle','hero_title');text('#heroDescription','hero_description');text('#heroBadge','hero_badge');text('#siteNotice','notice');text('#statYears','stat_years');text('#statSemesters','stat_semesters');text('#statContent','stat_content');text('#aboutBadge','about_badge');html('#aboutTitle','about_title');text('#aboutText','about_text');text('#aboutValue1','about_value_1');text('#aboutValue2','about_value_2');text('#aboutValue3','about_value_3');text('#aboutValue4','about_value_4');text('#footerText','footer_text');const brand=$('#brandName');if(brand&&s.site_name)brand.textContent=s.site_name;const sub=$('#brandSubtitle');if(sub&&s.brand_subtitle)sub.textContent=s.brand_subtitle;[['#facebook','facebook'],['#youtube','youtube'],['#whatsapp','whatsapp']].forEach(([id,k])=>{const el=$(id);if(el)el.href=s[k]||'#'});const ai=$('#aiServiceLink');if(ai&&s.ai_url)ai.href=s.ai_url}
-let courses=JSON.parse(localStorage.getItem('chemCourses')||'[]');function gp(g){if(g>=90)return 4;if(g>=85)return 3.7;if(g>=80)return 3.3;if(g>=75)return 3;if(g>=70)return 2.7;if(g>=65)return 2.3;if(g>=60)return 2;if(g>=50)return 1;return 0}
-function renderCourses(){const l=$('#courseList');if(!l)return;l.innerHTML=courses.length?courses.map((c,i)=>`<div class="course-row"><span>${esc(c.name||'مادة')}</span><span>${c.grade}/100</span><span>${c.hours} ساعات</span><button onclick="removeCourse(${i})">×</button></div>`).join(''):'<p class="empty">لم تتم إضافة مواد بعد.</p>';let p=0,h=0;courses.forEach(c=>{p+=gp(+c.grade)*(+c.hours);h+=+c.hours});if($('#gpaValue'))$('#gpaValue').textContent=h?(p/h).toFixed(2):'0.00';if($('#hoursValue'))$('#hoursValue').textContent=`${h} ساعات`;localStorage.setItem('chemCourses',JSON.stringify(courses))}
-window.removeCourse=async i=>{if(!(await requireLogin()))return showLoginRequired('تعديل حاسبة GPA يحتاج تسجيل دخول.');courses.splice(i,1);renderCourses()};
-if($('#addCourse'))$('#addCourse').onclick=async()=>{if(!(await requireLogin()))return showLoginRequired('استخدام حاسبة GPA يحتاج تسجيل دخول.');const grade=+$('#courseGrade').value,hours=+$('#courseHours').value;if(!Number.isFinite(grade)||grade<0||grade>100||!hours)return alert('أدخل درجة صحيحة وعدد الساعات.');courses.push({name:$('#courseName').value.trim(),grade,hours});$('#courseName').value='';$('#courseGrade').value='';$('#courseHours').value='';renderCourses()};
-if($('#clearCourses'))$('#clearCourses').onclick=async()=>{if(!(await requireLogin()))return showLoginRequired('تعديل حاسبة GPA يحتاج تسجيل دخول.');if(confirm('مسح كل المواد؟')){courses=[];renderCourses()}};
-(async()=>{try{await setupAuthUI();await loadHomeData();renderCourses()}catch(e){console.error(e);renderCourses()}})();
+
+
+function renderYears(ys){
+
+  const box=$('#yearsGrid');
+
+  if(!box)return;
+
+
+  box.innerHTML=ys.map(y=>`
+
+    <article
+      class="card year-card"
+      data-year="${esc(y.year_number)}"
+    >
+
+      <span class="card-icon">
+        ${esc(y.icon||'🎓')}
+      </span>
+
+      <h3>
+        ${esc(y.title)}
+      </h3>
+
+      <p>
+        ${esc(y.description||'')}
+      </p>
+
+      <button class="text-btn">
+        عرض الفصول ←
+      </button>
+
+    </article>
+
+  `).join('')
+
+  ||`
+
+    <div class="card empty">
+      لا توجد فرق مضافة بعد.
+    </div>
+
+  `;
+
+}
+
+
+function renderYear(year){
+
+  const view=$('#subjectView');
+
+  if(!view)return;
+
+
+  const list=dynamicSubjects.filter(
+    s=>String(s.ch_years?.year_number)===String(year)
+  );
+
+
+  const groups={};
+
+
+  list.forEach(s=>
+    (groups[s.semester]??=[]).push(s)
+  );
+
+
+  let html=`
+
+    <div class="section-head">
+
+      <span class="eyebrow">
+        الفرقة ${esc(year)}
+      </span>
+
+      <h2>
+        الفصول الدراسية
+      </h2>
+
+      <p>
+        أسماء المواد متاحة للاستكشاف؛ فتح ملفات المادة يحتاج تسجيل دخول.
+      </p>
+
+    </div>
+
+  `;
+
+
+  for(const [sem,arr] of Object.entries(groups)){
+
+    html+=`
+
+      <div class="semester">
+
+        <h3>
+          📚 ${esc(sem)}
+        </h3>
+
+        <div class="subject-grid">
+
+          ${arr.map(s=>`
+
+            <a
+              class="subject"
+              href="subject.html?subject=${encodeURIComponent(s.id)}"
+              onclick="
+                event.preventDefault();
+                protectService(
+                  ()=>location.href=this.href,
+                  'فتح ملفات المادة يحتاج تسجيل دخول.'
+                )
+              "
+            >
+
+              <div>
+
+                <strong>
+                  ${esc(s.name)}
+                </strong>
+
+                <small>
+                  ${esc(s.teacher||'')}
+                </small>
+
+              </div>
+
+              <b>
+                ${esc(s.grade_label||'—')}
+              </b>
+
+            </a>
+
+          `).join('')}
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if(!list.length)
+
+    html+=`
+
+      <div class="card empty">
+        لا توجد مواد مضافة لهذه الفرقة بعد.
+      </div>
+
+    `;
+
+
+  view.innerHTML=html;
+
+  location.hash='subjects';
+
+}
+
+
+function renderServices(list){
+
+  const box=$('#servicesGrid');
+
+  if(!box)return;
+
+
+  box.innerHTML=list.map(s=>{
+
+    let href=s.link||'#';
+
+    let requiresLogin=Boolean(s.requires_login);
+
+
+    /*
+      المساعد الذكي:
+      مهما كان الرابط الموجود في قاعدة البيانات،
+      يفتح دائمًا صفحة ai.html.
+    */
+
+    if(
+      String(s.title||'').includes('المساعد الذكي') ||
+      String(s.title||'').toLowerCase().includes('ai')
+    ){
+
+      href='ai.html';
+
+      requiresLogin=true;
+
+    }
+
+
+    /*
+      المحاضرات والملفات:
+      لو الرابط غير موجود، ينزل لقسم المواد.
+    */
+
+    if(
+      href==='#' &&
+      String(s.title||'').includes('المحاضرات')
+    ){
+
+      href='#subjects';
+
+    }
+
+
+    return `
+
+      <article class="card tool">
+
+        <span class="card-icon">
+          ${esc(s.icon||'✨')}
+        </span>
+
+        <h3>
+          ${esc(s.title)}
+        </h3>
+
+        <p>
+          ${esc(s.description||'')}
+        </p>
+
+        <a
+          class="btn small"
+          href="${esc(href)}"
+
+          ${
+            /^https?:/i.test(href)
+              ?'target="_blank" rel="noopener"'
+              :''
+          }
+
+          onclick="
+            return handleService(
+              event,
+              ${requiresLogin},
+              '${esc(s.title)}'
+            )
+          "
+        >
+
+          فتح الخدمة
+
+        </a>
+
+      </article>
+
+    `;
+
+  }).join('')
+
+  ||`
+
+    <div class="card">
+      لا توجد خدمات.
+    </div>
+
+  `;
+
+}
+
+
+window.handleService=async(
+  e,
+  requires,
+  title
+)=>{
+
+  if(!requires)
+    return true;
+
+
+  e.preventDefault();
+
+
+  if(await requireLogin()){
+
+    location.href=e.currentTarget.href;
+
+  }else{
+
+    showLoginRequired(
+      'استخدام '+title+' يحتاج تسجيل دخول.'
+    );
+
+  }
+
+
+  return false;
+
+};
+
+
+function renderAnnouncements(list){
+
+  const box=$('#announcements');
+
+  if(!box)return;
+
+
+  box.innerHTML=list.map(a=>`
+
+    <article class="card announcement">
+
+      <strong>
+        📢 ${esc(a.title)}
+      </strong>
+
+      <p>
+        ${esc(a.body||'')}
+      </p>
+
+      ${
+        a.link
+          ?`
+            <a
+              class="text-btn"
+              href="${esc(a.link)}"
+            >
+              التفاصيل ←
+            </a>
+          `
+          :''
+      }
+
+    </article>
+
+  `).join('')
+
+  ||`
+
+    <div class="card empty">
+      لا توجد إعلانات حاليًا.
+    </div>
+
+  `;
+
+}
+
+
+function applySettings(rows){
+
+  const s={};
+
+
+  rows.forEach(x=>
+    s[x.key]=x.value
+  );
+
+
+  const text=(id,key)=>{
+
+    const el=$(id);
+
+    if(el&&s[key]!=null)
+      el.textContent=s[key];
+
+  };
+
+
+  const html=(id,key)=>{
+
+    const el=$(id);
+
+    if(el&&s[key]!=null)
+      el.innerHTML=s[key];
+
+  };
+
+
+  html(
+    '#heroTitle',
+    'hero_title'
+  );
+
+  text(
+    '#heroDescription',
+    'hero_description'
+  );
+
+  text(
+    '#heroBadge',
+    'hero_badge'
+  );
+
+  text(
+    '#siteNotice',
+    'notice'
+  );
+
+  text(
+    '#statYears',
+    'stat_years'
+  );
+
+  text(
+    '#statSemesters',
+    'stat_semesters'
+  );
+
+  text(
+    '#statContent',
+    'stat_content'
+  );
+
+  text(
+    '#aboutBadge',
+    'about_badge'
+  );
+
+  html(
+    '#aboutTitle',
+    'about_title'
+  );
+
+  text(
+    '#aboutText',
+    'about_text'
+  );
+
+  text(
+    '#aboutValue1',
+    'about_value_1'
+  );
+
+  text(
+    '#aboutValue2',
+    'about_value_2'
+  );
+
+  text(
+    '#aboutValue3',
+    'about_value_3'
+  );
+
+  text(
+    '#aboutValue4',
+    'about_value_4'
+  );
+
+  text(
+    '#footerText',
+    'footer_text'
+  );
+
+
+  const brand=$('#brandName');
+
+  if(brand&&s.site_name)
+    brand.textContent=s.site_name;
+
+
+  const sub=$('#brandSubtitle');
+
+  if(sub&&s.brand_subtitle)
+    sub.textContent=s.brand_subtitle;
+
+
+  [
+    ['#facebook','facebook'],
+    ['#youtube','youtube'],
+    ['#whatsapp','whatsapp']
+  ].forEach(([id,k])=>{
+
+    const el=$(id);
+
+    if(el)
+      el.href=s[k]||'#';
+
+  });
+
+
+  /*
+    المساعد الذكي:
+    لا نعتمد على ai_url الموجود في قاعدة البيانات.
+    نربطه مباشرة بصفحة ai.html.
+  */
+
+  const ai=$('#aiServiceLink');
+
+  if(ai){
+
+    ai.href='ai.html';
+
+    ai.onclick=async e=>{
+
+      e.preventDefault();
+
+      if(await requireLogin()){
+
+        location.href='ai.html';
+
+      }else{
+
+        showLoginRequired(
+          'استخدام المساعد الذكي يحتاج تسجيل دخول.'
+        );
+
+      }
+
+    };
+
+  }
+
+}
+
+
+let courses=
+  JSON.parse(
+    localStorage.getItem('chemCourses')||'[]'
+  );
+
+
+function gp(g){
+
+  if(g>=90)return 4;
+
+  if(g>=85)return 3.7;
+
+  if(g>=80)return 3.3;
+
+  if(g>=75)return 3;
+
+  if(g>=70)return 2.7;
+
+  if(g>=65)return 2.3;
+
+  if(g>=60)return 2;
+
+  if(g>=50)return 1;
+
+  return 0;
+
+}
+
+
+function renderCourses(){
+
+  const l=$('#courseList');
+
+  if(!l)return;
+
+
+  l.innerHTML=courses.length
+
+    ?courses.map((c,i)=>`
+
+      <div class="course-row">
+
+        <span>
+          ${esc(c.name||'مادة')}
+        </span>
+
+        <span>
+          ${c.grade}/100
+        </span>
+
+        <span>
+          ${c.hours} ساعات
+        </span>
+
+        <button
+          onclick="removeCourse(${i})"
+        >
+          ×
+        </button>
+
+      </div>
+
+    `).join('')
+
+    :`
+
+      <p class="empty">
+        لم تتم إضافة مواد بعد.
+      </p>
+
+    `;
+
+
+  let p=0,h=0;
+
+
+  courses.forEach(c=>{
+
+    p+=gp(+c.grade)*(+c.hours);
+
+    h+=+c.hours;
+
+  });
+
+
+  if($('#gpaValue'))
+    $('#gpaValue').textContent=
+      h?(p/h).toFixed(2):'0.00';
+
+
+  if($('#hoursValue'))
+    $('#hoursValue').textContent=
+      `${h} ساعات`;
+
+
+  localStorage.setItem(
+    'chemCourses',
+    JSON.stringify(courses)
+  );
+
+}
+
+
+window.removeCourse=async i=>{
+
+  if(!(await requireLogin()))
+    return showLoginRequired(
+      'تعديل حاسبة GPA يحتاج تسجيل دخول.'
+    );
+
+
+  courses.splice(i,1);
+
+  renderCourses();
+
+};
+
+
+if($('#addCourse'))
+
+  $('#addCourse').onclick=async()=>{
+
+    if(!(await requireLogin()))
+
+      return showLoginRequired(
+        'استخدام حاسبة GPA يحتاج تسجيل دخول.'
+      );
+
+
+    const grade=
+      +$('#courseGrade').value;
+
+    const hours=
+      +$('#courseHours').value;
+
+
+    if(
+      !Number.isFinite(grade) ||
+      grade<0 ||
+      grade>100 ||
+      !hours
+    )
+
+      return alert(
+        'أدخل درجة صحيحة وعدد الساعات.'
+      );
+
+
+    courses.push({
+
+      name:
+        $('#courseName').value.trim(),
+
+      grade,
+
+      hours
+
+    });
+
+
+    $('#courseName').value='';
+
+    $('#courseGrade').value='';
+
+    $('#courseHours').value='';
+
+
+    renderCourses();
+
+  };
+
+
+if($('#clearCourses'))
+
+  $('#clearCourses').onclick=async()=>{
+
+    if(!(await requireLogin()))
+
+      return showLoginRequired(
+        'تعديل حاسبة GPA يحتاج تسجيل دخول.'
+      );
+
+
+    if(confirm('مسح كل المواد؟')){
+
+      courses=[];
+
+      renderCourses();
+
+    }
+
+  };
+
+
+(async()=>{
+
+  try{
+
+    await setupAuthUI();
+
+    await loadHomeData();
+
+    renderCourses();
+
+  }catch(e){
+
+    console.error(e);
+
+    renderCourses();
+
+  }
+
+})();
