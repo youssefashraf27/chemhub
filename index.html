@@ -41,8 +41,12 @@
     <div class="container hero-grid">
       <div>
         <span class="eyebrow">🎓 بوابتك الدراسية</span>
-        <h1>كلية التربية<br><strong>قسم الكيمياء</strong></h1>
-        <p>مكان واحد يجمع موادك، محاضراتك، الملخصات، الاختبارات، الأدوات الدراسية وكل ما تحتاجه خلال سنوات الدراسة.</p>
+        <h1 id="heroTitle">
+  كلية التربية<br><strong>قسم الكيمياء</strong>
+</h1>
+        <p id="heroDescription">
+  مكان واحد يجمع موادك، محاضراتك، الملخصات، الاختبارات، الأدوات الدراسية وكل ما تحتاجه خلال سنوات الدراسة.
+</p>
         <div class="hero-actions">
           <a class="btn primary" href="#years">ابدأ الآن ←</a>
           <a class="btn ghost" href="#about">اعرف المزيد</a>
@@ -52,24 +56,123 @@
         <div class="flask">🧪</div>
         <h3>مرحباً بك في ChemistryHub</h3>
         <p>تعلم • نظم • اختبر نفسك • طوّر مستواك</p>
-        <div class="mini-stats"><span><b>4</b> فرق</span><span><b>8</b> فصول</span><span><b>∞</b> محتوى</span></div>
+        <div class="mini-stats">
+
+  <span>
+    <b id="statYears">4</b>
+    فرق
+  </span>
+
+  <span>
+    <b id="statSemesters">8</b>
+    فصول
+  </span>
+
+  <span>
+    <b id="statContent">∞</b>
+    محتوى
+  </span>
+
+</div>
       </div>
     </div>
   </section>
 
   <section class="notice">
-    <div class="container notice-inner"><span>💡</span><p>هذا الموقع منصة طلابية تعليمية غير رسمية، والمحتوى قابل للتعديل والإضافة حسب نظام الكلية.</p></div>
-  </section>
+
+  <div class="container notice-inner">
+
+    <span>💡</span>
+
+    <p id="siteNotice">
+      هذا الموقع منصة طلابية تعليمية غير رسمية، والمحتوى قابل للتعديل والإضافة حسب نظام الكلية.
+    </p>
+
+  </div>
+
+</section>
 
   <section id="years" class="section">
     <div class="container">
       <div class="section-head"><span class="eyebrow">Academic Years</span><h2>السنوات الدراسية</h2><p>اختر الفرقة ثم الفصل الدراسي للوصول إلى المواد.</p></div>
-      <div class="cards years">
-        <article class="card year-card" data-year="1"><span class="card-icon">1️⃣</span><h3>الفرقة الأولى</h3><p>المستوى التمهيدي والأساسيات</p><button class="text-btn">عرض الفصول ←</button></article>
-        <article class="card year-card" data-year="2"><span class="card-icon">2️⃣</span><h3>الفرقة الثانية</h3><p>مواد الكيمياء المتقدمة</p><button class="text-btn">عرض الفصول ←</button></article>
-        <article class="card year-card" data-year="3"><span class="card-icon">3️⃣</span><h3>الفرقة الثالثة</h3><p>التخصص والتطبيقات</p><button class="text-btn">عرض الفصول ←</button></article>
-        <article class="card year-card" data-year="4"><span class="card-icon">4️⃣</span><h3>الفرقة الرابعة</h3><p>التخصص والتخرج والتدريب</p><button class="text-btn">عرض الفصول ←</button></article>
-      </div>
+    <div class="cards years">
+
+  <article class="card year-card" data-year="1">
+
+    <span class="card-icon">1️⃣</span>
+
+    <h3 id="year1Title">
+      الفرقة الأولى
+    </h3>
+
+    <p id="year1Desc">
+      المستوى التمهيدي والأساسيات
+    </p>
+
+    <button class="text-btn">
+      عرض الفصول ←
+    </button>
+
+  </article>
+
+
+  <article class="card year-card" data-year="2">
+
+    <span class="card-icon">2️⃣</span>
+
+    <h3 id="year2Title">
+      الفرقة الثانية
+    </h3>
+
+    <p id="year2Desc">
+      مواد الكيمياء المتقدمة
+    </p>
+
+    <button class="text-btn">
+      عرض الفصول ←
+    </button>
+
+  </article>
+
+
+  <article class="card year-card" data-year="3">
+
+    <span class="card-icon">3️⃣</span>
+
+    <h3 id="year3Title">
+      الفرقة الثالثة
+    </h3>
+
+    <p id="year3Desc">
+      التخصص والتطبيقات
+    </p>
+
+    <button class="text-btn">
+      عرض الفصول ←
+    </button>
+
+  </article>
+
+
+  <article class="card year-card" data-year="4">
+
+    <span class="card-icon">4️⃣</span>
+
+    <h3 id="year4Title">
+      الفرقة الرابعة
+    </h3>
+
+    <p id="year4Desc">
+      التخصص والتخرج والتدريب
+    </p>
+
+    <button class="text-btn">
+      عرض الفصول ←
+    </button>
+
+  </article>
+
+</div>
     </div>
   </section>
 
@@ -86,11 +189,99 @@
     <div class="container">
       <div class="section-head"><span class="eyebrow">Student Tools</span><h2>أدوات الطالب</h2></div>
       <div class="cards tools-grid">
-        <article class="card tool"><span class="card-icon">📝</span><h3>بنك الاختبارات</h3><p>اختبر نفسك بأسئلة قابلة للتعديل.</p><button class="btn small" onclick="alert('أضف أسئلتك من ملف js/data.js')">فتح البنك</button></article>
-        <article class="card tool"><span class="card-icon">📚</span><h3>المحاضرات والمراجع</h3><p>روابط ملفات PDF وDrive والمصادر.</p><button class="btn small" onclick="alert('أضف روابط المحتوى من ملف js/data.js')">فتح المحتوى</button></article>
-        <article class="card tool"><span class="card-icon">🤖</span><h3>المساعد الذكي</h3><p>واجهة جاهزة لإضافة مساعد تعليمي لاحقاً.</p><button class="btn small" onclick="alert('يمكن ربطه لاحقاً بـ API خاص بك')">ابدأ</button></article>
-        <article class="card tool"><span class="card-icon">📊</span><h3>حاسبة GPA</h3><p>احسب المعدل الفصلي بسرعة.</p><a class="btn small" href="#gpa">احسب الآن</a></article>
-      </div>
+
+  <article class="card tool">
+
+    <span class="card-icon">📝</span>
+
+    <h3 id="toolQuizzesTitle">
+      بنك الاختبارات
+    </h3>
+
+    <p id="toolQuizzesDesc">
+      اختبر نفسك بأسئلة قابلة للتعديل.
+    </p>
+
+    <button
+      class="btn small"
+      onclick="alert('يمكن إضافة بنك الاختبارات من لوحة الإدارة لاحقاً')">
+
+      فتح البنك
+
+    </button>
+
+  </article>
+
+
+  <article class="card tool">
+
+    <span class="card-icon">📚</span>
+
+    <h3 id="toolMaterialsTitle">
+      المحاضرات والمراجع
+    </h3>
+
+    <p id="toolMaterialsDesc">
+      روابط ملفات PDF وDrive والمصادر.
+    </p>
+
+    <button
+      class="btn small"
+      onclick="document.getElementById('subjects').scrollIntoView({behavior:'smooth'})">
+
+      فتح المحتوى
+
+    </button>
+
+  </article>
+
+
+  <article class="card tool">
+
+    <span class="card-icon">🤖</span>
+
+    <h3 id="toolAiTitle">
+      المساعد الذكي
+    </h3>
+
+    <p id="toolAiDesc">
+      واجهة جاهزة لإضافة مساعد تعليمي لاحقاً.
+    </p>
+
+    <button
+      class="btn small"
+      onclick="alert('يمكن ربط المساعد الذكي لاحقاً بـ API')">
+
+      ابدأ
+
+    </button>
+
+  </article>
+
+
+  <article class="card tool">
+
+    <span class="card-icon">📊</span>
+
+    <h3 id="toolGpaTitle">
+      حاسبة GPA
+    </h3>
+
+    <p id="toolGpaDesc">
+      احسب المعدل الفصلي بسرعة.
+    </p>
+
+    <a
+      class="btn small"
+      href="#gpa">
+
+      احسب الآن
+
+    </a>
+
+  </article>
+
+</div>
     </div>
   </section>
 
@@ -112,11 +303,71 @@
   </section>
 
   <section id="about" class="section about">
-    <div class="container about-grid">
-      <div><span class="eyebrow">About ChemistryHub</span><h2>منصة طلابية صُممت لتسهّل رحلة دراسة الكيمياء.</h2><p>استخدم هذا المشروع كنقطة بداية، ثم أضف بيانات الكلية، المحاضرات، المذكرات، الاختبارات، أخبار القسم، الجداول، النتائج وأي أدوات تحتاجها.</p></div>
-      <div class="values"><div><b>🧪</b><span>محتوى كيمياء منظم</span></div><div><b>🎯</b><span>وصول سريع للمواد</span></div><div><b>📱</b><span>متوافق مع الهاتف</span></div><div><b>⚡</b><span>خفيف وسريع</span></div></div>
+
+  <div class="container about-grid">
+
+    <div>
+
+      <span
+        class="eyebrow"
+        id="aboutBadge">
+
+        About ChemistryHub
+
+      </span>
+
+      <h2 id="aboutTitle">
+
+        منصة طلابية صُممت لتسهّل رحلة دراسة الكيمياء.
+
+      </h2>
+
+      <p id="aboutText">
+
+        استخدم هذا المشروع كنقطة بداية، ثم أضف بيانات الكلية،
+        المحاضرات، المذكرات، الاختبارات، أخبار القسم،
+        الجداول، النتائج وأي أدوات تحتاجها.
+
+      </p>
+
     </div>
-  </section>
+
+
+    <div class="values">
+
+      <div>
+        <b>🧪</b>
+        <span id="aboutValue1">
+          محتوى كيمياء منظم
+        </span>
+      </div>
+
+      <div>
+        <b>🎯</b>
+        <span id="aboutValue2">
+          وصول سريع للمواد
+        </span>
+      </div>
+
+      <div>
+        <b>📱</b>
+        <span id="aboutValue3">
+          متوافق مع الهاتف
+        </span>
+      </div>
+
+      <div>
+        <b>⚡</b>
+        <span id="aboutValue4">
+          خفيف وسريع
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
 </main>
 
 <footer><div class="container footer"><div><b>🧪 ChemistryHub</b><p>كلية التربية • قسم الكيمياء</p></div><span>© <span id="year"></span> ChemistryHub</span></div></footer>
