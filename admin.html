@@ -1,29 +1,1396 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة الإدارة | ChemistryHub</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script>
-<style>.admin-wrap{padding:50px 0}.admin-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:25px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:25px}.stat{background:var(--card,#fff);border:1px solid #e3e9ef;border-radius:18px;padding:20px}.stat b{font-size:30px;display:block;color:#07866c}.table-wrap{overflow:auto;background:var(--card,#fff);border-radius:18px;border:1px solid #e3e9ef}.users{width:100%;border-collapse:collapse;min-width:750px}.users th,.users td{padding:13px;border-bottom:1px solid #edf0f3;text-align:right}.users select,.users input{padding:8px;border:1px solid #dce3ea;border-radius:8px;font-family:inherit;background:inherit;color:inherit}.admin-msg{margin:12px 0;color:#07866c}.admin-error{color:#c53b3b}.danger{background:#fff0f0;color:#c53b3b;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}@media(max-width:700px){.stats{grid-template-columns:1fr}.admin-head{align-items:flex-start;flex-direction:column}}</style>
-</head><body>
-<header class="topbar"><div class="container nav"><a class="brand" href="index.html"><span class="brand-icon">🧪</span><span>ChemistryHub<small>لوحة الإدارة</small></span></a><div style="display:flex;gap:8px"><a class="btn ghost" href="index.html">الموقع</a><button class="btn small" onclick="logout()">خروج</button></div></div></header>
-<main class="admin-wrap"><div class="container">
-<div class="admin-head"><div><span class="eyebrow">Administration</span><h1>لوحة الإدارة</h1><p>إدارة بيانات المستخدمين وصلاحياتهم.</p></div><button class="btn primary" id="refreshBtn">تحديث</button></div>
-<div id="message" class="admin-msg"></div><div class="stats"><div class="stat"><span>إجمالي المستخدمين</span><b id="total">—</b></div><div class="stat"><span>الطلاب</span><b id="students">—</b></div><div class="stat"><span>المديرون</span><b id="admins">—</b></div></div>
-<div class="table-wrap"><table class="users"><thead><tr><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>الفرقة</th><th>الصلاحية</th><th>إجراء</th></tr></thead><tbody id="usersBody"><tr><td colspan="6">جاري التحميل...</td></tr></tbody></table></div>
-</div></main>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>لوحة الإدارة | ChemistryHub</title>
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+
+  <style>
+
+    .admin-wrap {
+      padding: 45px 0 80px;
+    }
+
+    .admin-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+      margin-bottom:25px;
+    }
+
+    .admin-tabs {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+
+    .admin-tab {
+      border:1px solid #dce5e2;
+      background:#fff;
+      padding:10px 16px;
+      border-radius:10px;
+      cursor:pointer;
+      font-family:inherit;
+      font-weight:700;
+    }
+
+    .admin-tab.active {
+      background:#07866c;
+      color:#fff;
+      border-color:#07866c;
+    }
+
+    .admin-panel {
+      display:none;
+    }
+
+    .admin-panel.active {
+      display:block;
+    }
+
+    .admin-card {
+      background:#fff;
+      border:1px solid #e3e9ef;
+      border-radius:18px;
+      padding:25px;
+      margin-bottom:20px;
+    }
+
+    .admin-card h2 {
+      margin-bottom:20px;
+    }
+
+    .admin-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+    }
+
+    .admin-field {
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+
+    .admin-field.full {
+      grid-column:1/-1;
+    }
+
+    .admin-field label {
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .admin-field input,
+    .admin-field textarea {
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid #dce3ea;
+      border-radius:10px;
+      padding:11px 13px;
+      font-family:inherit;
+      outline:none;
+      background:#fff;
+      color:#222;
+    }
+
+    .admin-field textarea {
+      min-height:100px;
+      resize:vertical;
+    }
+
+    .admin-field input:focus,
+    .admin-field textarea:focus {
+      border-color:#07866c;
+    }
+
+    .admin-save {
+      margin-top:20px;
+    }
+
+    .admin-message {
+      padding:12px 15px;
+      border-radius:10px;
+      margin-bottom:15px;
+      display:none;
+    }
+
+    .admin-message.success {
+      display:block;
+      background:#e8f8f2;
+      color:#08765f;
+    }
+
+    .admin-message.error {
+      display:block;
+      background:#fff0f0;
+      color:#c53b3b;
+    }
+
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:15px;
+      margin-bottom:25px;
+    }
+
+    .stat {
+      background:#fff;
+      border:1px solid #e3e9ef;
+      border-radius:18px;
+      padding:20px;
+    }
+
+    .stat b {
+      display:block;
+      font-size:30px;
+      color:#07866c;
+      margin-top:5px;
+    }
+
+    .table-wrap {
+      overflow:auto;
+      background:#fff;
+      border-radius:18px;
+      border:1px solid #e3e9ef;
+    }
+
+    .users {
+      width:100%;
+      border-collapse:collapse;
+      min-width:750px;
+    }
+
+    .users th,
+    .users td {
+      padding:13px;
+      border-bottom:1px solid #edf0f3;
+      text-align:right;
+    }
+
+    .users select {
+      padding:8px;
+      border:1px solid #dce3ea;
+      border-radius:8px;
+      font-family:inherit;
+    }
+
+    .dark .admin-tab,
+    .dark .admin-card,
+    .dark .stat,
+    .dark .table-wrap {
+      background:#15211f;
+      border-color:#29403a;
+      color:#fff;
+    }
+
+    .dark .admin-field input,
+    .dark .admin-field textarea,
+    .dark .users select {
+      background:#101b19;
+      color:#fff;
+      border-color:#30443f;
+    }
+
+    @media(max-width:700px) {
+
+      .admin-grid {
+        grid-template-columns:1fr;
+      }
+
+      .admin-field.full {
+        grid-column:auto;
+      }
+
+      .stats {
+        grid-template-columns:1fr;
+      }
+
+      .admin-head {
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+  <div class="container nav">
+
+    <a class="brand" href="index.html">
+
+      <span class="brand-icon">🧪</span>
+
+      <span>
+        ChemistryHub
+        <small>لوحة الإدارة</small>
+      </span>
+
+    </a>
+
+    <div style="display:flex;gap:8px">
+
+      <a class="btn ghost" href="index.html">
+        الموقع
+      </a>
+
+      <button class="btn small" onclick="logout()">
+        خروج
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main class="admin-wrap">
+
+<div class="container">
+
+  <div class="admin-head">
+
+    <div>
+
+      <span class="eyebrow">
+        Administration
+      </span>
+
+      <h1>
+        لوحة الإدارة
+      </h1>
+
+      <p>
+        تحكم في محتوى الموقع والخدمات من مكان واحد.
+      </p>
+
+    </div>
+
+    <button
+      class="btn primary"
+      id="refreshBtn">
+
+      تحديث
+
+    </button>
+
+  </div>
+
+
+  <div id="message" class="admin-message"></div>
+
+
+  <!-- ================================================= -->
+  <!-- TABS -->
+  <!-- ================================================= -->
+
+  <div class="admin-tabs">
+
+    <button
+      class="admin-tab active"
+      data-tab="home">
+      🏠 الصفحة الرئيسية
+    </button>
+
+    <button
+      class="admin-tab"
+      data-tab="services">
+      🛠️ الخدمات
+    </button>
+
+    <button
+      class="admin-tab"
+      data-tab="about">
+      ℹ️ عن الموقع
+    </button>
+
+    <button
+      class="admin-tab"
+      data-tab="social">
+      🔗 التواصل
+    </button>
+
+    <button
+      class="admin-tab"
+      data-tab="users">
+      👥 المستخدمون
+    </button>
+
+  </div>
+
+
+  <!-- ================================================= -->
+  <!-- HOME -->
+  <!-- ================================================= -->
+
+  <section
+    class="admin-panel active"
+    id="panel-home">
+
+    <div class="admin-card">
+
+      <h2>
+        محتوى الواجهة الرئيسية
+      </h2>
+
+      <div class="admin-grid">
+
+        <div class="admin-field full">
+
+          <label>
+            عنوان الـ Hero
+          </label>
+
+          <input
+            id="hero_title"
+            placeholder="مثال: كلية التربية<br><strong>قسم الكيمياء</strong>">
+
+        </div>
+
+
+        <div class="admin-field full">
+
+          <label>
+            وصف الموقع
+          </label>
+
+          <textarea id="hero_description"></textarea>
+
+        </div>
+
+
+        <div class="admin-field full">
+
+          <label>
+            الشريط التنبيهي
+          </label>
+
+          <textarea id="notice"></textarea>
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            عدد الفرق
+          </label>
+
+          <input id="stat_years">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            عدد الفصول
+          </label>
+
+          <input id="stat_semesters">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            عدد المحتوى
+          </label>
+
+          <input id="stat_content">
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn primary admin-save"
+        onclick="saveGroup('home')">
+
+        💾 حفظ الصفحة الرئيسية
+
+      </button>
+
+    </div>
+
+
+    <!-- YEARS -->
+
+    <div class="admin-card">
+
+      <h2>
+        🎓 السنوات الدراسية
+      </h2>
+
+      <div class="admin-grid">
+
+        <div class="admin-field">
+
+          <label>الفرقة الأولى</label>
+
+          <input id="year_1_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>وصف الفرقة الأولى</label>
+
+          <input id="year_1_desc">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>الفرقة الثانية</label>
+
+          <input id="year_2_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>وصف الفرقة الثانية</label>
+
+          <input id="year_2_desc">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>الفرقة الثالثة</label>
+
+          <input id="year_3_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>وصف الفرقة الثالثة</label>
+
+          <input id="year_3_desc">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>الفرقة الرابعة</label>
+
+          <input id="year_4_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>وصف الفرقة الرابعة</label>
+
+          <input id="year_4_desc">
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn primary admin-save"
+        onclick="saveGroup('years')">
+
+        💾 حفظ السنوات
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================= -->
+  <!-- SERVICES -->
+  <!-- ================================================= -->
+
+  <section
+    class="admin-panel"
+    id="panel-services">
+
+    <div class="admin-card">
+
+      <h2>
+        🛠️ خدمات الطالب
+      </h2>
+
+      <p>
+        عدّل أسماء ووصف الخدمات التي تظهر في الصفحة الرئيسية.
+      </p>
+
+      <br>
+
+      <div class="admin-grid">
+
+        <div class="admin-field">
+
+          <label>
+            بنك الاختبارات
+          </label>
+
+          <input id="tool_quizzes_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            وصف بنك الاختبارات
+          </label>
+
+          <input id="tool_quizzes_desc">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            المحاضرات والمراجع
+          </label>
+
+          <input id="tool_materials_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            وصف المحاضرات والمراجع
+          </label>
+
+          <input id="tool_materials_desc">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            المساعد الذكي
+          </label>
+
+          <input id="tool_ai_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            وصف المساعد الذكي
+          </label>
+
+          <input id="tool_ai_desc">
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            حاسبة GPA
+          </label>
+
+          <input id="tool_gpa_title">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            وصف حاسبة GPA
+          </label>
+
+          <input id="tool_gpa_desc">
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn primary admin-save"
+        onclick="saveGroup('services')">
+
+        💾 حفظ الخدمات
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================= -->
+  <!-- ABOUT -->
+  <!-- ================================================= -->
+
+  <section
+    class="admin-panel"
+    id="panel-about">
+
+    <div class="admin-card">
+
+      <h2>
+        ℹ️ قسم عن الموقع
+      </h2>
+
+      <div class="admin-grid">
+
+        <div class="admin-field full">
+
+          <label>
+            العنوان الصغير
+          </label>
+
+          <input id="about_badge">
+
+        </div>
+
+
+        <div class="admin-field full">
+
+          <label>
+            عنوان القسم
+          </label>
+
+          <input id="about_title">
+
+        </div>
+
+
+        <div class="admin-field full">
+
+          <label>
+            النص
+          </label>
+
+          <textarea id="about_text"></textarea>
+
+        </div>
+
+
+        <div class="admin-field">
+
+          <label>
+            القيمة الأولى
+          </label>
+
+          <input id="about_value_1">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            القيمة الثانية
+          </label>
+
+          <input id="about_value_2">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            القيمة الثالثة
+          </label>
+
+          <input id="about_value_3">
+
+        </div>
+
+        <div class="admin-field">
+
+          <label>
+            القيمة الرابعة
+          </label>
+
+          <input id="about_value_4">
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn primary admin-save"
+        onclick="saveGroup('about')">
+
+        💾 حفظ قسم عن الموقع
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================= -->
+  <!-- SOCIAL -->
+  <!-- ================================================= -->
+
+  <section
+    class="admin-panel"
+    id="panel-social">
+
+    <div class="admin-card">
+
+      <h2>
+        🔗 روابط التواصل الاجتماعي
+      </h2>
+
+      <div class="admin-grid">
+
+        <div class="admin-field full">
+
+          <label>
+            Facebook
+          </label>
+
+          <input
+            id="facebook"
+            placeholder="https://facebook.com/...">
+
+        </div>
+
+
+        <div class="admin-field full">
+
+          <label>
+            YouTube
+          </label>
+
+          <input
+            id="youtube"
+            placeholder="https://youtube.com/...">
+
+        </div>
+
+
+        <div class="admin-field full">
+
+          <label>
+            WhatsApp
+          </label>
+
+          <input
+            id="whatsapp"
+            placeholder="https://wa.me/...">
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="btn primary admin-save"
+        onclick="saveGroup('social')">
+
+        💾 حفظ روابط التواصل
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================= -->
+  <!-- USERS -->
+  <!-- ================================================= -->
+
+  <section
+    class="admin-panel"
+    id="panel-users">
+
+    <div class="stats">
+
+      <div class="stat">
+        إجمالي المستخدمين
+        <b id="total">—</b>
+      </div>
+
+      <div class="stat">
+        الطلاب
+        <b id="students">—</b>
+      </div>
+
+      <div class="stat">
+        المديرون
+        <b id="admins">—</b>
+      </div>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+      <table class="users">
+
+        <thead>
+
+          <tr>
+
+            <th>الاسم</th>
+            <th>البريد</th>
+            <th>الهاتف</th>
+            <th>الفرقة</th>
+            <th>الصلاحية</th>
+            <th>إجراء</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody id="usersBody">
+
+          <tr>
+            <td colspan="6">
+              جاري التحميل...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</div>
+
+</main>
+
+
 <script>
-const client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);let currentUser;
-const $=id=>document.getElementById(id);
-const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-async function boot(){try{currentUser=await getCurrentUser();if(!currentUser){location.href="login.html";return}
- const {data:me,error}=await client.from("profiles").select("role").eq("id",currentUser.id).single();
- if(error||me?.role!=="admin"){document.body.innerHTML='<main class="section"><div class="container"><div class="card" style="text-align:center"><h2>غير مصرح بالدخول</h2><p>هذه الصفحة مخصصة للمديرين فقط.</p><a class="btn primary" href="index.html">العودة للموقع</a></div></div></main>';return}
- loadUsers();
-}catch(e){$("message").textContent="تعذر التحقق من صلاحيات المدير.";$("message").className="admin-msg admin-error"}}
-async function loadUsers(){const {data,error}=await client.from("profiles").select("id,full_name,email,phone,grade,role,created_at").order("created_at",{ascending:false});if(error){$("message").textContent="تأكد من تشغيل ملف supabase.sql في مشروع Supabase. "+error.message;$("message").className="admin-msg admin-error";return}
- $("total").textContent=data.length;$("students").textContent=data.filter(x=>x.role!=="admin").length;$("admins").textContent=data.filter(x=>x.role==="admin").length;
- $("usersBody").innerHTML=data.map(u=>`<tr data-id="${esc(u.id)}"><td>${esc(u.full_name||"—")}</td><td>${esc(u.email||"—")}</td><td>${esc(u.phone||"—")}</td><td>${esc(u.grade||"—")}</td><td><select class="role"><option value="student" ${u.role==="student"?"selected":""}>طالب</option><option value="admin" ${u.role==="admin"?"selected":""}>مدير</option></select></td><td><button class="btn small save">حفظ</button></td></tr>`).join("");
- document.querySelectorAll(".save").forEach(b=>b.onclick=async()=>{const row=b.closest("tr"),id=row.dataset.id,role=row.querySelector(".role").value;b.disabled=true;const {error}=await client.from("profiles").update({role}).eq("id",id);b.disabled=false;if(error)alert(error.message);else loadUsers()});
+
+const client =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+let settings = {};
+
+const $ = id =>
+  document.getElementById(id);
+
+
+const esc = x =>
+  String(x ?? "")
+    .replace(/[&<>"']/g, c =>
+      ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+      }[c])
+    );
+
+
+/* ================================================
+   ADMIN CHECK
+================================================ */
+
+async function boot(){
+
+  try{
+
+    const user = await getCurrentUser();
+
+    if(!user){
+
+      location.href = "login.html";
+      return;
+
+    }
+
+
+    const { data:me, error } =
+      await client
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+
+    if(
+      error ||
+      me?.role !== "admin"
+    ){
+
+      document.body.innerHTML = `
+        <main class="section">
+
+          <div class="container">
+
+            <div class="card"
+                 style="text-align:center">
+
+              <h2>
+                غير مصرح بالدخول
+              </h2>
+
+              <p>
+                هذه الصفحة مخصصة للمديرين فقط.
+              </p>
+
+              <a
+                class="btn primary"
+                href="index.html">
+
+                العودة للموقع
+
+              </a>
+
+            </div>
+
+          </div>
+
+        </main>
+      `;
+
+      return;
+
+    }
+
+
+    await loadSettings();
+    await loadUsers();
+
+  }catch(e){
+
+    showMessage(
+      "تعذر التحقق من صلاحيات المدير.",
+      "error"
+    );
+
+  }
+
 }
-$("refreshBtn").onclick=loadUsers;boot();
-</script></body></html>
+
+
+/* ================================================
+   SETTINGS
+================================================ */
+
+async function loadSettings(){
+
+  const { data, error } =
+    await client
+      .from("site_settings")
+      .select("key,value");
+
+
+  if(error){
+
+    showMessage(
+      "خطأ في تحميل إعدادات الموقع: " +
+      error.message,
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  settings = {};
+
+  data.forEach(row => {
+    settings[row.key] = row.value ?? "";
+  });
+
+
+  Object.keys(settings).forEach(key => {
+
+    const input = $(key);
+
+    if(input){
+      input.value = settings[key];
+    }
+
+  });
+
+}
+
+
+async function saveGroup(group){
+
+  const groups = {
+
+    home: [
+
+      "hero_title",
+      "hero_description",
+      "notice",
+      "stat_years",
+      "stat_semesters",
+      "stat_content"
+
+    ],
+
+    years: [
+
+      "year_1_title",
+      "year_1_desc",
+      "year_2_title",
+      "year_2_desc",
+      "year_3_title",
+      "year_3_desc",
+      "year_4_title",
+      "year_4_desc"
+
+    ],
+
+    services: [
+
+      "tool_quizzes_title",
+      "tool_quizzes_desc",
+      "tool_materials_title",
+      "tool_materials_desc",
+      "tool_ai_title",
+      "tool_ai_desc",
+      "tool_gpa_title",
+      "tool_gpa_desc"
+
+    ],
+
+    about: [
+
+      "about_badge",
+      "about_title",
+      "about_text",
+      "about_value_1",
+      "about_value_2",
+      "about_value_3",
+      "about_value_4"
+
+    ],
+
+    social: [
+
+      "facebook",
+      "youtube",
+      "whatsapp"
+
+    ]
+
+  };
+
+
+  const keys = groups[group] || [];
+
+
+  for(const key of keys){
+
+    const input = $(key);
+
+    if(!input) continue;
+
+
+    const value = input.value.trim();
+
+
+    const { error } =
+      await client
+        .from("site_settings")
+        .upsert({
+          key,
+          value,
+          updated_at:new Date().toISOString()
+        });
+
+
+    if(error){
+
+      showMessage(
+        "حدث خطأ أثناء الحفظ: " +
+        error.message,
+        "error"
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  await loadSettings();
+
+  showMessage(
+    "تم حفظ التعديلات بنجاح ✅",
+    "success"
+  );
+
+}
+
+
+/* ================================================
+   USERS
+================================================ */
+
+async function loadUsers(){
+
+  const {
+    data,
+    error
+  } =
+    await client
+      .from("profiles")
+      .select(
+        "id,full_name,email,phone,grade,role,created_at"
+      )
+      .order(
+        "created_at",
+        {ascending:false}
+      );
+
+
+  if(error){
+
+    showMessage(
+      "تعذر تحميل المستخدمين: " +
+      error.message,
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  $("total").textContent =
+    data.length;
+
+
+  $("students").textContent =
+    data.filter(
+      x => x.role !== "admin"
+    ).length;
+
+
+  $("admins").textContent =
+    data.filter(
+      x => x.role === "admin"
+    ).length;
+
+
+  $("usersBody").innerHTML =
+    data.map(u => `
+
+      <tr data-id="${esc(u.id)}">
+
+        <td>
+          ${esc(u.full_name || "—")}
+        </td>
+
+        <td>
+          ${esc(u.email || "—")}
+        </td>
+
+        <td>
+          ${esc(u.phone || "—")}
+        </td>
+
+        <td>
+          ${esc(u.grade || "—")}
+        </td>
+
+        <td>
+
+          <select class="role">
+
+            <option
+              value="student"
+              ${u.role==="student"?"selected":""}>
+
+              طالب
+
+            </option>
+
+            <option
+              value="admin"
+              ${u.role==="admin"?"selected":""}>
+
+              مدير
+
+            </option>
+
+          </select>
+
+        </td>
+
+        <td>
+
+          <button
+            class="btn small save">
+
+            حفظ
+
+          </button>
+
+        </td>
+
+      </tr>
+
+    `).join("");
+
+
+  document
+    .querySelectorAll(".save")
+    .forEach(button => {
+
+      button.onclick =
+        async () => {
+
+          const row =
+            button.closest("tr");
+
+          const id =
+            row.dataset.id;
+
+          const role =
+            row.querySelector(".role").value;
+
+
+          button.disabled = true;
+
+
+          const { error } =
+            await client
+              .from("profiles")
+              .update({role})
+              .eq("id",id);
+
+
+          button.disabled = false;
+
+
+          if(error){
+
+            alert(error.message);
+
+          }else{
+
+            await loadUsers();
+
+          }
+
+        };
+
+    });
+
+}
+
+
+/* ================================================
+   MESSAGE
+================================================ */
+
+function showMessage(text,type){
+
+  const box =
+    $("message");
+
+  box.textContent = text;
+
+  box.className =
+    "admin-message " + type;
+
+  setTimeout(() => {
+
+    box.className =
+      "admin-message";
+
+  },4000);
+
+}
+
+
+/* ================================================
+   TABS
+================================================ */
+
+document
+  .querySelectorAll(".admin-tab")
+  .forEach(button => {
+
+    button.onclick = () => {
+
+      document
+        .querySelectorAll(".admin-tab")
+        .forEach(x =>
+          x.classList.remove("active")
+        );
+
+      document
+        .querySelectorAll(".admin-panel")
+        .forEach(x =>
+          x.classList.remove("active")
+        );
+
+
+      button.classList.add("active");
+
+
+      $("panel-" + button.dataset.tab)
+        .classList.add("active");
+
+    };
+
+  });
+
+
+$("refreshBtn").onclick =
+  async () => {
+
+    await loadSettings();
+    await loadUsers();
+
+    showMessage(
+      "تم تحديث البيانات ✅",
+      "success"
+    );
+
+  };
+
+
+boot();
+
+</script>
+
+</body>
+</html>
