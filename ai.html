@@ -1,600 +1,605 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <title>المساعد الذكي | ChemistryHub</title>
-
-  <link rel="stylesheet" href="style.css">
-
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
-  <script src="auth.js"></script>
-
-  <style>
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: #f7f7f8;
-    }
-
-    /* =========================
-       الصفحة
-    ========================= */
-
-    .ai-layout {
-      height: calc(100vh - 67px);
-      display: flex;
-      flex-direction: column;
-      max-width: 1100px;
-      margin: auto;
-      position: relative;
-    }
-
-
-    /* =========================
-       عنوان المحادثة
-    ========================= */
-
-    .ai-header {
-      text-align: center;
-      padding: 24px 20px 10px;
-      flex-shrink: 0;
-    }
-
-    .ai-header h1 {
-      margin: 0;
-      font-size: 25px;
-      font-weight: 800;
-    }
-
-    .ai-header p {
-      margin: 7px 0 0;
-      color: #777;
-      font-size: 14px;
-    }
-
-
-    /* =========================
-       منطقة الرسائل
-    ========================= */
-
-    .chat-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 25px 170px;
-      scroll-behavior: smooth;
-    }
-
-
-    .message-row {
-      display: flex;
-      width: 100%;
-      margin: 22px 0;
-    }
-
-    .message-row.user {
-      justify-content: flex-start;
-    }
-
-    .message-row.assistant {
-      justify-content: flex-end;
-    }
-
-
-    .message-content {
-      max-width: 75%;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-
-    .avatar {
-      width: 34px;
-      height: 34px;
-      min-width: 34px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      background: #e6f4ef;
-    }
-
-
-    .message-row.user .avatar {
-      order: 2;
-      background: #07866c;
-      color: white;
-    }
-
-
-    .bubble {
-      line-height: 1.9;
-      font-size: 15px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-
-    .message-row.user .bubble {
-      background: #07866c;
-      color: white;
-      padding: 11px 16px;
-      border-radius: 18px 18px 4px 18px;
-    }
-
-
-    .message-row.assistant .bubble {
-      padding: 5px 0;
-      color: #222;
-    }
-
-
-    /* =========================
-       رسالة الترحيب
-    ========================= */
-
-    .welcome {
-      max-width: 700px;
-      margin: 45px auto;
-      text-align: center;
-    }
-
-
-    .welcome-icon {
-      width: 65px;
-      height: 65px;
-      margin: auto auto 18px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #e6f4ef;
-      font-size: 34px;
-    }
-
-
-    .welcome h2 {
-      margin: 0 0 10px;
-      font-size: 25px;
-    }
-
-
-    .welcome p {
-      color: #777;
-      margin: 0;
-      line-height: 1.8;
-    }
-
-
-    /* =========================
-       منطقة الكتابة
-    ========================= */
-
-    .composer-wrapper {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      left: 0;
-      padding: 20px 25px 25px;
-
-      background: linear-gradient(
-        to bottom,
-        rgba(247,247,248,0),
-        #f7f7f8 25%
-      );
-    }
-
-
-    .composer {
-      max-width: 850px;
-      margin: auto;
-
-      background: white;
-      border: 1px solid #d9d9df;
-      border-radius: 22px;
-
-      box-shadow:
-        0 4px 18px rgba(0,0,0,.07);
-
-      padding: 9px 10px;
-
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-    }
-
-
-    /* =========================
-       زر المرفقات
-    ========================= */
-
-    .attach-btn {
-      width: 42px;
-      height: 42px;
-      min-width: 42px;
-
-      border: 0;
-      border-radius: 12px;
-
-      background: transparent;
-
-      cursor: pointer;
-
-      font-size: 22px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-
-    .attach-btn:hover {
-      background: #f0f0f2;
-    }
-
-
-    #fileInput {
-      display: none;
-    }
-
-
-    /* =========================
-       حقل الكتابة
-    ========================= */
-
-    #message {
-      flex: 1;
-
-      border: 0;
-      outline: 0;
-
-      resize: none;
-
-      min-height: 42px;
-      max-height: 150px;
-
-      padding: 10px 5px;
-
-      font-family: inherit;
-      font-size: 15px;
-
-      background: transparent;
-
-      color: #222;
-    }
-
-
-    #message::placeholder {
-      color: #999;
-    }
-
-
-    /* =========================
-       زر الإرسال
-    ========================= */
-
-    .send-btn {
-      width: 42px;
-      height: 42px;
-      min-width: 42px;
-
-      border: 0;
-      border-radius: 50%;
-
-      background: #07866c;
-      color: white;
-
-      cursor: pointer;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      font-size: 19px;
-    }
-
-
-    .send-btn:hover {
-      opacity: .9;
-    }
-
-
-    .send-btn:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-    }
-
-
-    /* =========================
-       معاينة الملف
-    ========================= */
-
-    .attachment-preview {
-      display: none;
-
-      max-width: 850px;
-      margin: 0 auto 8px;
-
-      padding: 8px 12px;
-
-      background: white;
-
-      border: 1px solid #ddd;
-
-      border-radius: 12px;
-
-      align-items: center;
-
-      gap: 10px;
-    }
-
-
-    .attachment-preview.active {
-      display: flex;
-    }
-
-
-    .attachment-thumb {
-      width: 42px;
-      height: 42px;
-
-      border-radius: 8px;
-
-      overflow: hidden;
-
-      background: #f1f1f1;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-
-    .attachment-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-
-    .attachment-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-
-    .attachment-name {
-      font-size: 13px;
-      font-weight: 700;
-
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-
-    .attachment-size {
-      font-size: 11px;
-      color: #888;
-    }
-
-
-    .remove-attachment {
-      border: 0;
-      background: transparent;
-
-      font-size: 22px;
-
-      cursor: pointer;
-
-      color: #888;
-    }
-
-
-    /* =========================
-       حالة الإرسال
-    ========================= */
-
-    .typing {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      color: #888;
-      font-size: 13px;
-    }
-
-
-    .typing.active {
-      display: flex;
-    }
-
-
-    .typing span {
-      width: 6px;
-      height: 6px;
-
-      border-radius: 50%;
-
-      background: #888;
-
-      animation: typing 1.2s infinite;
-    }
-
-
-    .typing span:nth-child(2) {
-      animation-delay: .15s;
-    }
-
-
-    .typing span:nth-child(3) {
-      animation-delay: .3s;
-    }
-
-
-    @keyframes typing {
-
-      0%,60%,100% {
-        transform: translateY(0);
-        opacity: .4;
-      }
-
-      30% {
-        transform: translateY(-4px);
-        opacity: 1;
-      }
-
-    }
-
-
-    /* =========================
-       الموبايل
-    ========================= */
-
-    @media(max-width:700px) {
-
-      .ai-layout {
-        height: calc(100vh - 60px);
-      }
-
-      .ai-header {
-        padding: 18px 12px 5px;
-      }
-
-      .ai-header h1 {
-        font-size: 21px;
-      }
-
-      .chat-area {
-        padding:
-          15px
-          12px
-          160px;
-      }
-
-      .message-content {
-        max-width: 90%;
-      }
-
-      .composer-wrapper {
-        padding:
-          12px
-          10px
-          15px;
-      }
-
-      .composer {
-        border-radius: 18px;
-      }
-
-    }
-
-
-  </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>المساعد الذكي | ChemistryHub</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#f7f7f8;
+}
+
+.ai-layout{
+  height:calc(100vh - 67px);
+  display:flex;
+  flex-direction:column;
+  max-width:1100px;
+  margin:auto;
+  position:relative;
+}
+
+.ai-header{
+  padding:16px 20px 10px;
+  text-align:center;
+  flex-shrink:0;
+}
+
+.ai-header h1{
+  margin:0;
+  font-size:23px;
+}
+
+.ai-header p{
+  color:#777;
+  margin:5px 0 0;
+  font-size:13px;
+}
+
+.subject-badge{
+  display:none;
+  width:max-content;
+  max-width:90%;
+  margin:8px auto 0;
+  padding:6px 12px;
+  background:#e6f4ef;
+  color:#08745f;
+  border-radius:30px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.chat-area{
+  flex:1;
+  overflow-y:auto;
+  padding:20px 25px 190px;
+  scroll-behavior:smooth;
+}
+
+.welcome{
+  max-width:760px;
+  margin:35px auto;
+  text-align:center;
+}
+
+.welcome-icon{
+  width:65px;
+  height:65px;
+  margin:0 auto 15px;
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#e6f4ef;
+  font-size:32px;
+}
+
+.welcome h2{
+  margin:0 0 8px;
+}
+
+.welcome p{
+  color:#777;
+  line-height:1.8;
+}
+
+.subject-options{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  max-width:720px;
+  margin:25px auto;
+}
+
+.subject-card{
+  background:white;
+  border:1px solid #ddd;
+  border-radius:18px;
+  padding:22px 15px;
+  cursor:pointer;
+  transition:.2s;
+  font-family:inherit;
+  text-align:center;
+}
+
+.subject-card:hover{
+  border-color:#07866c;
+  transform:translateY(-2px);
+}
+
+.subject-card .icon{
+  display:block;
+  font-size:34px;
+  margin-bottom:8px;
+}
+
+.subject-card strong{
+  font-size:16px;
+}
+
+.message-row{
+  display:flex;
+  width:100%;
+  margin:20px 0;
+}
+
+.message-row.user{
+  justify-content:flex-start;
+}
+
+.message-row.assistant{
+  justify-content:flex-end;
+}
+
+.message-content{
+  max-width:78%;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.avatar{
+  width:34px;
+  height:34px;
+  min-width:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#e6f4ef;
+}
+
+.message-row.user .avatar{
+  order:2;
+  background:#07866c;
+  color:white;
+}
+
+.bubble{
+  line-height:1.9;
+  font-size:15px;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.message-row.user .bubble{
+  background:#07866c;
+  color:white;
+  padding:10px 15px;
+  border-radius:17px 17px 4px 17px;
+}
+
+.message-row.assistant .bubble{
+  padding:5px 0;
+  color:#222;
+}
+
+.lesson-card{
+  max-width:850px;
+  margin:20px auto;
+  background:white;
+  border:1px solid #e0e0e0;
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 3px 15px rgba(0,0,0,.04);
+}
+
+.lesson-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+
+.page-badge{
+  background:#e6f4ef;
+  color:#07866c;
+  padding:7px 12px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.progress-text{
+  color:#777;
+  font-size:12px;
+}
+
+.lesson-title{
+  font-size:19px;
+  margin:10px 0;
+}
+
+.explanation{
+  line-height:2;
+  white-space:pre-wrap;
+}
+
+.key-points{
+  margin-top:18px;
+  background:#f7faf9;
+  border-radius:15px;
+  padding:15px;
+}
+
+.key-points h3{
+  margin-top:0;
+  font-size:15px;
+}
+
+.key-points ul{
+  margin:0;
+  padding-right:20px;
+  line-height:1.9;
+}
+
+.quiz-box{
+  max-width:850px;
+  margin:20px auto;
+}
+
+.quiz-heading{
+  margin-bottom:15px;
+}
+
+.question{
+  background:white;
+  border:1px solid #e1e1e1;
+  border-radius:16px;
+  padding:17px;
+  margin-bottom:12px;
+}
+
+.question-title{
+  font-weight:700;
+  line-height:1.8;
+  margin-bottom:12px;
+}
+
+.option{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.option:hover{
+  background:#f5f5f5;
+}
+
+.option input{
+  margin-top:6px;
+}
+
+.essay-answer{
+  width:100%;
+  min-height:100px;
+  border:1px solid #d9d9df;
+  border-radius:12px;
+  padding:12px;
+  font-family:inherit;
+  resize:vertical;
+  outline:none;
+}
+
+.quiz-submit{
+  width:100%;
+  padding:13px;
+  border:0;
+  border-radius:13px;
+  background:#07866c;
+  color:white;
+  font-family:inherit;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.quiz-submit:disabled{
+  opacity:.5;
+}
+
+.result-card{
+  max-width:850px;
+  margin:20px auto;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:20px;
+  padding:22px;
+}
+
+.result-score{
+  text-align:center;
+  font-size:30px;
+  font-weight:800;
+  color:#07866c;
+  margin-bottom:12px;
+}
+
+.feedback-item{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  line-height:1.8;
+}
+
+.next-loading{
+  text-align:center;
+  padding:20px;
+  color:#777;
+}
+
+.composer-wrapper{
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:18px 25px 22px;
+  background:linear-gradient(
+    to bottom,
+    rgba(247,247,248,0),
+    #f7f7f8 28%
+  );
+}
+
+.attachment-preview{
+  display:none;
+  max-width:850px;
+  margin:0 auto 8px;
+  background:white;
+  border:1px solid #ddd;
+  border-radius:13px;
+  padding:8px 11px;
+  align-items:center;
+  gap:10px;
+}
+
+.attachment-preview.active{
+  display:flex;
+}
+
+.attachment-thumb{
+  width:42px;
+  height:42px;
+  border-radius:8px;
+  background:#f1f1f1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+.attachment-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.attachment-info{
+  flex:1;
+  min-width:0;
+}
+
+.attachment-name{
+  font-size:13px;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.attachment-size{
+  color:#888;
+  font-size:11px;
+}
+
+.remove-attachment{
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  font-size:22px;
+}
+
+.typing{
+  display:none;
+  max-width:850px;
+  margin:0 auto 7px;
+  font-size:12px;
+  color:#777;
+}
+
+.typing.active{
+  display:block;
+}
+
+.composer{
+  max-width:850px;
+  margin:auto;
+  background:white;
+  border:1px solid #d9d9df;
+  border-radius:22px;
+  box-shadow:0 4px 18px rgba(0,0,0,.06);
+  padding:8px 10px;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+}
+
+.attach-btn{
+  width:42px;
+  height:42px;
+  min-width:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:21px;
+}
+
+.attach-btn:hover{
+  background:#f0f0f0;
+}
+
+#fileInput{
+  display:none;
+}
+
+#message{
+  flex:1;
+  border:0;
+  outline:0;
+  resize:none;
+  background:transparent;
+  min-height:42px;
+  max-height:140px;
+  padding:10px 4px;
+  font-family:inherit;
+  font-size:15px;
+}
+
+.send-btn{
+  width:42px;
+  height:42px;
+  min-width:42px;
+  border:0;
+  border-radius:50%;
+  background:#07866c;
+  color:white;
+  cursor:pointer;
+  font-size:18px;
+}
+
+.send-btn:disabled{
+  opacity:.45;
+}
+
+.study-lock{
+  opacity:.5;
+  pointer-events:none;
+}
+
+@media(max-width:700px){
+  .subject-options{
+    grid-template-columns:1fr;
+  }
+
+  .chat-area{
+    padding:15px 12px 185px;
+  }
+
+  .composer-wrapper{
+    padding:12px 10px 15px;
+  }
+
+  .message-content{
+    max-width:92%;
+  }
+
+  .lesson-card,
+  .quiz-box,
+  .result-card{
+    margin-left:0;
+    margin-right:0;
+  }
+}
+</style>
 </head>
-
 
 <body>
 
-
 <header class="topbar">
-
   <div class="container nav">
 
     <a class="brand" href="index.html">
-
-      <span class="brand-icon">
-        🧪
-      </span>
-
+      <span class="brand-icon">🧪</span>
       <span>
         ChemistryHub
         <small>المساعد الذكي</small>
       </span>
-
     </a>
-
 
     <div id="accountBox"></div>
 
   </div>
-
 </header>
-
-
 
 <div class="ai-layout">
 
-
-  <!-- العنوان -->
-
   <div class="ai-header">
 
-    <h1>
-      🤖 المساعد الذكي
-    </h1>
+    <h1>🤖 المساعد الذكي</h1>
 
     <p>
-      اسألني عن الكيمياء أو ارفع صورة أو ملف PDF
+      مساعد مذاكرة تفاعلي
     </p>
+
+    <div id="subjectBadge" class="subject-badge"></div>
 
   </div>
 
+  <div id="chatArea" class="chat-area">
 
-
-  <!-- المحادثة -->
-
-  <div
-    id="chatArea"
-    class="chat-area"
-  >
-
-
-    <div
-      id="welcome"
-      class="welcome"
-    >
+    <div id="welcome" class="welcome">
 
       <div class="welcome-icon">
-        🧪
+        🧠
       </div>
 
       <h2>
-        كيف يمكنني مساعدتك؟
+        ماذا تريد أن تدرس؟
       </h2>
 
       <p>
-        اكتب سؤالك أو أرفق صورة لمسألة أو ملف PDF
-        وسأساعدك في فهمه وحله.
+        اختر التخصص أولًا، وبعدها يمكنك رفع PDF ليتم شرحه
+        صفحتين صفحتين مع اختبار بعد كل جزء.
       </p>
+
+      <div class="subject-options">
+
+        <button
+          class="subject-card"
+          onclick="chooseSubject('chemistry','🧪 الكيمياء')"
+        >
+          <span class="icon">🧪</span>
+          <strong>الكيمياء</strong>
+        </button>
+
+        <button
+          class="subject-card"
+          onclick="chooseSubject('physics','⚡ الفيزياء')"
+        >
+          <span class="icon">⚡</span>
+          <strong>الفيزياء</strong>
+        </button>
+
+        <button
+          class="subject-card"
+          onclick="chooseSubject('education','📚 مادة تربوية')"
+        >
+          <span class="icon">📚</span>
+          <strong>مادة تربوية</strong>
+        </button>
+
+      </div>
 
     </div>
 
-
   </div>
 
-
-
-  <!-- منطقة الكتابة -->
-
   <div class="composer-wrapper">
-
-
-    <!-- الملف المرفق -->
 
     <div
       id="attachmentPreview"
@@ -605,7 +610,6 @@
         id="attachmentThumb"
         class="attachment-thumb"
       ></div>
-
 
       <div class="attachment-info">
 
@@ -621,7 +625,6 @@
 
       </div>
 
-
       <button
         id="removeAttachment"
         class="remove-attachment"
@@ -632,41 +635,19 @@
 
     </div>
 
-
-
-    <!-- مؤشر الكتابة -->
-
-    <div
-      id="typing"
-      class="typing"
-    >
-
-      <span></span>
-      <span></span>
-      <span></span>
-
-      جاري التفكير...
-
+    <div id="typing" class="typing">
+      🤖 جاري تجهيز المحتوى...
     </div>
 
-
-
-    <!-- صندوق الكتابة -->
-
-    <form
-      id="aiForm"
-      class="composer"
-    >
-
+    <form id="aiForm" class="composer">
 
       <label
         for="fileInput"
         class="attach-btn"
-        title="إرفاق ملف أو صورة"
+        title="رفع PDF أو صورة"
       >
         📎
       </label>
-
 
       <input
         id="fileInput"
@@ -674,48 +655,27 @@
         accept=".pdf,image/jpeg,image/png,image/webp,application/pdf"
       >
 
-
       <textarea
         id="message"
         rows="1"
-        placeholder="اكتب رسالتك..."
+        placeholder="اختر المادة أولًا..."
       ></textarea>
-
 
       <button
         id="send"
         class="send-btn"
         type="submit"
-        title="إرسال"
       >
         ↑
       </button>
 
-
     </form>
-
-
-    <div
-      style="
-        text-align:center;
-        font-size:11px;
-        color:#999;
-        margin-top:8px;
-      "
-    >
-      قد تحتاج إجابات الذكاء الاصطناعي إلى مراجعة من مصدر علمي.
-    </div>
-
 
   </div>
 
-
 </div>
 
-
-
 <script>
-
 
 const client =
   window.supabaseClient ||
@@ -724,26 +684,90 @@ const client =
     SUPABASE_ANON_KEY
   );
 
-
 window.supabaseClient = client;
 
+const $ = selector =>
+  document.querySelector(selector);
 
-
-const $ =
-  selector =>
-    document.querySelector(selector);
-
-
+let selectedSubject = null;
+let selectedSubjectName = null;
 
 let selectedFile = null;
 
+/*
+  studyState يتم الاحتفاظ به أثناء دراسة PDF.
+*/
+let studyState = {
+  active: false,
+  currentStart: 1,
+  currentEnd: 2,
+  totalPages: null,
+  lesson: null
+};
 
 
-/* =========================
-   حجم الملف
-========================= */
+/* ======================================
+   اختيار التخصص
+====================================== */
 
-function formatSize(bytes) {
+window.chooseSubject = function(value,name){
+
+  selectedSubject = value;
+  selectedSubjectName = name;
+
+  $("#subjectBadge").style.display =
+    "block";
+
+  $("#subjectBadge").textContent =
+    "التخصص: " + name;
+
+  $("#welcome").innerHTML = `
+    <div class="welcome-icon">
+      ${name.split(" ")[0]}
+    </div>
+
+    <h2>
+      تم اختيار ${escapeHtml(name)}
+    </h2>
+
+    <p>
+      ارفع ملف PDF وسأبدأ تلقائيًا بشرح الصفحتين الأولى والثانية،
+      ثم أضع لك 7 أسئلة اختيار من متعدد و3 أسئلة مقالية.
+    </p>
+  `;
+
+  $("#message").placeholder =
+    "اكتب سؤالك أو ارفع PDF لبدء المذاكرة...";
+
+};
+
+
+/* ======================================
+   مساعد للحماية من HTML
+====================================== */
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replace(
+      /[&<>"']/g,
+      c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+      }[c])
+    );
+
+}
+
+
+/* ======================================
+   تنسيق الحجم
+====================================== */
+
+function formatSize(bytes){
 
   if(bytes < 1024)
     return bytes + " B";
@@ -756,99 +780,92 @@ function formatSize(bytes) {
 }
 
 
+/* ======================================
+   الرسائل العادية
+====================================== */
 
-/* =========================
-   إضافة رسالة
-========================= */
+function addMessage(text,type){
 
-function addMessage(text,type) {
-
+  $("#welcome")?.remove();
 
   const row =
     document.createElement("div");
 
-
   row.className =
     "message-row " + type;
-
 
   const content =
     document.createElement("div");
 
-
   content.className =
     "message-content";
-
 
   const avatar =
     document.createElement("div");
 
-
   avatar.className =
     "avatar";
-
 
   avatar.textContent =
     type === "user"
       ? "👤"
       : "🤖";
 
-
   const bubble =
     document.createElement("div");
-
 
   bubble.className =
     "bubble";
 
-
   bubble.textContent =
     text;
 
-
   content.appendChild(avatar);
-
   content.appendChild(bubble);
 
   row.appendChild(content);
 
-
-  $("#welcome")?.remove();
-
-
   $("#chatArea").appendChild(row);
 
-
-  $("#chatArea").scrollTop =
-    $("#chatArea").scrollHeight;
+  scrollDown();
 
 }
 
 
+/* ======================================
+   النزول لآخر المحادثة
+====================================== */
 
-/* =========================
-   معاينة الملف
-========================= */
+function scrollDown(){
 
-function showFile(file) {
+  setTimeout(()=>{
 
+    $("#chatArea").scrollTop =
+      $("#chatArea").scrollHeight;
+
+  },50);
+
+}
+
+
+/* ======================================
+   عرض الملف
+====================================== */
+
+function showFile(file){
 
   $("#attachmentName").textContent =
     file.name;
 
-
   $("#attachmentSize").textContent =
     formatSize(file.size);
-
 
   const thumb =
     $("#attachmentThumb");
 
-
   thumb.innerHTML = "";
 
-
-  if(file.type.startsWith("image/")) {
+  if(file.type.startsWith("image/")){
 
     const img =
       document.createElement("img");
@@ -858,16 +875,12 @@ function showFile(file) {
 
     thumb.appendChild(img);
 
-  } else {
+  }else{
 
-    thumb.textContent =
-      "📄";
-
-    thumb.style.fontSize =
-      "22px";
+    thumb.textContent = "📄";
+    thumb.style.fontSize = "22px";
 
   }
-
 
   $("#attachmentPreview")
     .classList.add("active");
@@ -875,12 +888,14 @@ function showFile(file) {
 }
 
 
+/* ======================================
+   مسح المرفق
+====================================== */
 
-/* =========================
-   حذف الملف
-========================= */
+function clearFile(){
 
-function clearFile() {
+  if(studyState.active)
+    return;
 
   selectedFile = null;
 
@@ -889,89 +904,14 @@ function clearFile() {
   $("#attachmentPreview")
     .classList.remove("active");
 
-  $("#attachmentThumb").innerHTML = "";
-
 }
 
 
+/* ======================================
+   تحويل Base64
+====================================== */
 
-/* =========================
-   اختيار ملف
-========================= */
-
-$("#fileInput").addEventListener(
-  "change",
-  function() {
-
-
-    const file =
-      this.files?.[0];
-
-
-    if(!file)
-      return;
-
-
-    const allowed = [
-
-      "application/pdf",
-
-      "image/jpeg",
-
-      "image/png",
-
-      "image/webp"
-
-    ];
-
-
-    if(!allowed.includes(file.type)) {
-
-      alert(
-        "يسمح فقط بـ PDF أو JPG أو PNG أو WEBP."
-      );
-
-      clearFile();
-
-      return;
-
-    }
-
-
-    if(file.size > 5 * 1024 * 1024) {
-
-      alert(
-        "الحد الأقصى لحجم الملف هو 5MB."
-      );
-
-      clearFile();
-
-      return;
-
-    }
-
-
-    selectedFile =
-      file;
-
-
-    showFile(file);
-
-  }
-);
-
-
-
-$("#removeAttachment").onclick =
-  clearFile;
-
-
-
-/* =========================
-   تحويل الملف Base64
-========================= */
-
-function fileToBase64(file) {
+function fileToBase64(file){
 
   return new Promise(
     (resolve,reject)=>{
@@ -979,24 +919,17 @@ function fileToBase64(file) {
       const reader =
         new FileReader();
 
+      reader.onload = ()=>{
 
-      reader.onload =
-        ()=>{
+        resolve(
+          String(reader.result)
+            .split(",")[1]
+        );
 
-          const result =
-            String(reader.result);
-
-
-          resolve(
-            result.split(",")[1]
-          );
-
-        };
-
+      };
 
       reader.onerror =
         reject;
-
 
       reader.readAsDataURL(file);
 
@@ -1006,45 +939,82 @@ function fileToBase64(file) {
 }
 
 
+/* ======================================
+   عند اختيار الملف
+====================================== */
 
-/* =========================
-   تكبير textarea
-========================= */
+$("#fileInput").addEventListener(
+  "change",
+  async function(){
 
-$("#message").addEventListener(
-  "input",
-  function(){
+    if(!selectedSubject){
 
-    this.style.height =
-      "auto";
+      alert(
+        "اختر الكيمياء أو الفيزياء أو المادة التربوية أولًا."
+      );
 
-    this.style.height =
-      Math.min(
-        this.scrollHeight,
-        150
-      ) + "px";
+      this.value = "";
 
-  }
-);
+      return;
 
+    }
 
+    const file =
+      this.files?.[0];
 
-/* =========================
-   Enter للإرسال
-========================= */
+    if(!file)
+      return;
 
-$("#message").addEventListener(
-  "keydown",
-  function(e){
+    const allowed = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
 
-    if(
-      e.key === "Enter" &&
-      !e.shiftKey
-    ){
+    if(!allowed.includes(file.type)){
 
-      e.preventDefault();
+      alert(
+        "نوع الملف غير مدعوم."
+      );
 
-      $("#aiForm").requestSubmit();
+      this.value = "";
+
+      return;
+
+    }
+
+    if(file.size > 5 * 1024 * 1024){
+
+      alert(
+        "حجم الملف يجب ألا يتجاوز 5MB."
+      );
+
+      this.value = "";
+
+      return;
+
+    }
+
+    selectedFile = file;
+
+    showFile(file);
+
+    /*
+      PDF يبدأ وضع المذاكرة تلقائيًا.
+    */
+
+    if(file.type === "application/pdf"){
+
+      studyState.active = true;
+      studyState.currentStart = 1;
+      studyState.currentEnd = 2;
+      studyState.totalPages = null;
+
+      $("#message").disabled = true;
+      $("#send").disabled = true;
+
+      await loadStudyChunk();
 
     }
 
@@ -1052,64 +1022,721 @@ $("#message").addEventListener(
 );
 
 
-
-/* =========================
-   تشغيل المساعد
-========================= */
-
-async function boot() {
+$("#removeAttachment").onclick =
+  clearFile;
 
 
-  if(!(await protectPage()))
+/* ======================================
+   عرض شرح الصفحتين
+====================================== */
+
+function renderLesson(data){
+
+  studyState.lesson = data;
+
+  const card =
+    document.createElement("div");
+
+  card.className =
+    "lesson-card";
+
+  const total =
+    Number(data.totalPages || 0);
+
+  const start =
+    Number(data.startPage || studyState.currentStart);
+
+  const end =
+    Number(data.endPage || studyState.currentEnd);
+
+  const percent =
+    total
+      ? Math.min(
+          100,
+          Math.round(
+            (end / total) * 100
+          )
+        )
+      : 0;
+
+  const points =
+    Array.isArray(data.keyPoints)
+      ? data.keyPoints
+      : [];
+
+  card.innerHTML = `
+
+    <div class="lesson-top">
+
+      <span class="page-badge">
+        📖 الصفحات ${start} - ${end}
+      </span>
+
+      <span class="progress-text">
+        ${
+          total
+            ? `${end} من ${total} صفحة • ${percent}%`
+            : ""
+        }
+      </span>
+
+    </div>
+
+    <h2 class="lesson-title">
+      ${escapeHtml(
+        data.title ||
+        "شرح الجزء"
+      )}
+    </h2>
+
+    <div class="explanation">
+      ${escapeHtml(data.explanation || "")}
+    </div>
+
+    ${
+      points.length
+      ?`
+        <div class="key-points">
+
+          <h3>
+            📌 أهم النقاط
+          </h3>
+
+          <ul>
+
+            ${points.map(
+              p=>`
+                <li>
+                  ${escapeHtml(p)}
+                </li>
+              `
+            ).join("")}
+
+          </ul>
+
+        </div>
+      `
+      :""
+    }
+
+  `;
+
+  $("#chatArea").appendChild(card);
+
+  renderQuiz(data);
+
+  scrollDown();
+
+}
+
+
+/* ======================================
+   الاختبار
+====================================== */
+
+function renderQuiz(data){
+
+  const mcq =
+    Array.isArray(data.mcq)
+      ? data.mcq
+      : [];
+
+  const essay =
+    Array.isArray(data.essay)
+      ? data.essay
+      : [];
+
+  const box =
+    document.createElement("div");
+
+  box.className =
+    "quiz-box";
+
+  box.id =
+    "currentQuiz";
+
+  box.innerHTML = `
+
+    <div class="quiz-heading">
+
+      <h2>
+        📝 اختبار الصفحات
+        ${data.startPage} - ${data.endPage}
+      </h2>
+
+      <p>
+        أجب عن الأسئلة العشرة للانتقال تلقائيًا إلى الجزء التالي.
+      </p>
+
+    </div>
+
+
+    <form id="studyQuizForm">
+
+      <h3>
+        أولًا: 7 أسئلة اختيار من متعدد
+      </h3>
+
+
+      ${mcq.map(
+        (q,index)=>`
+
+          <div class="question">
+
+            <div class="question-title">
+              ${index + 1}.
+              ${escapeHtml(q.question)}
+            </div>
+
+            ${(q.options || []).map(
+              (option,optionIndex)=>`
+
+                <label class="option">
+
+                  <input
+                    type="radio"
+                    name="mcq_${index}"
+                    value="${optionIndex}"
+                  >
+
+                  <span>
+                    ${escapeHtml(option)}
+                  </span>
+
+                </label>
+
+              `
+            ).join("")}
+
+          </div>
+
+        `
+      ).join("")}
+
+
+      <h3>
+        ثانيًا: 3 أسئلة مقالية
+      </h3>
+
+
+      ${essay.map(
+        (q,index)=>`
+
+          <div class="question">
+
+            <div class="question-title">
+              ${index + 1}.
+              ${escapeHtml(q.question)}
+            </div>
+
+            <textarea
+              class="essay-answer"
+              id="essay_${index}"
+              placeholder="اكتب إجابتك هنا..."
+            ></textarea>
+
+          </div>
+
+        `
+      ).join("")}
+
+
+      <button
+        class="quiz-submit"
+        type="submit"
+        id="quizSubmit"
+      >
+        ✅ تصحيح الإجابات والانتقال للجزء التالي
+      </button>
+
+    </form>
+
+  `;
+
+  $("#chatArea").appendChild(box);
+
+  $("#studyQuizForm")
+    .addEventListener(
+      "submit",
+      submitStudyQuiz
+    );
+
+}
+
+
+/* ======================================
+   إرسال الاختبار للتصحيح
+====================================== */
+
+async function submitStudyQuiz(event){
+
+  event.preventDefault();
+
+  const lesson =
+    studyState.lesson;
+
+  if(!lesson)
+    return;
+
+  const mcqAnswers = [];
+
+  for(
+    let i = 0;
+    i < lesson.mcq.length;
+    i++
+  ){
+
+    const checked =
+      document.querySelector(
+        `input[name="mcq_${i}"]:checked`
+      );
+
+    if(!checked){
+
+      alert(
+        `أجب عن سؤال الاختيار رقم ${i + 1}.`
+      );
+
+      return;
+    }
+
+    mcqAnswers.push(
+      Number(checked.value)
+    );
+
+  }
+
+
+  const essayAnswers = [];
+
+  for(
+    let i = 0;
+    i < lesson.essay.length;
+    i++
+  ){
+
+    const value =
+      $("#essay_" + i)
+        .value
+        .trim();
+
+    if(!value){
+
+      alert(
+        `أجب عن السؤال المقالي رقم ${i + 1}.`
+      );
+
+      return;
+    }
+
+    essayAnswers.push(value);
+
+  }
+
+
+  $("#quizSubmit").disabled = true;
+
+  $("#typing").classList.add("active");
+
+  $("#typing").textContent =
+    "📝 جاري تصحيح إجاباتك...";
+
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await client.functions.invoke(
+        "chemistry-ai",
+        {
+          body:{
+            action:"grade",
+
+            subject:
+              selectedSubject,
+
+            lesson:{
+              startPage:
+                lesson.startPage,
+
+              endPage:
+                lesson.endPage,
+
+              mcq:
+                lesson.mcq,
+
+              essay:
+                lesson.essay
+            },
+
+            answers:{
+              mcq:
+                mcqAnswers,
+
+              essay:
+                essayAnswers
+            }
+          }
+        }
+      );
+
+
+    if(error)
+      throw error;
+
+
+    if(!data?.result)
+      throw new Error(
+        "لم يصل التصحيح."
+      );
+
+
+    renderResult(
+      data.result
+    );
+
+
+    /*
+      بعد 4 ثواني يبدأ الجزء التالي تلقائيًا.
+    */
+
+    const total =
+      Number(
+        studyState.totalPages || 0
+      );
+
+    const oldEnd =
+      studyState.currentEnd;
+
+
+    if(
+      total &&
+      oldEnd >= total
+    ){
+
+      studyState.active = false;
+
+      selectedFile = null;
+
+      $("#attachmentPreview")
+        .classList.remove("active");
+
+      $("#message").disabled = false;
+      $("#send").disabled = false;
+
+      addMessage(
+        "🎉 أحسنت! انتهينا من شرح الملف كاملًا واختبار جميع أجزائه.",
+        "assistant"
+      );
+
+      return;
+
+    }
+
+
+    const notice =
+      document.createElement("div");
+
+    notice.className =
+      "next-loading";
+
+    notice.textContent =
+      "✅ سيتم الانتقال إلى الصفحتين التاليتين تلقائيًا...";
+
+    $("#chatArea")
+      .appendChild(notice);
+
+
+    scrollDown();
+
+
+    setTimeout(
+      async ()=>{
+
+        notice.remove();
+
+        studyState.currentStart =
+          oldEnd + 1;
+
+        studyState.currentEnd =
+          oldEnd + 2;
+
+        await loadStudyChunk();
+
+      },
+      4000
+    );
+
+
+  }catch(error){
+
+    console.error(error);
+
+    alert(
+      "حدث خطأ أثناء تصحيح الاختبار."
+    );
+
+    $("#quizSubmit").disabled = false;
+
+  }finally{
+
+    $("#typing")
+      .classList.remove("active");
+
+  }
+
+}
+
+
+/* ======================================
+   عرض نتيجة التصحيح
+====================================== */
+
+function renderResult(result){
+
+  $("#currentQuiz")
+    ?.classList.add("study-lock");
+
+  const card =
+    document.createElement("div");
+
+  card.className =
+    "result-card";
+
+  const feedback =
+    Array.isArray(result.feedback)
+      ? result.feedback
+      : [];
+
+  card.innerHTML = `
+
+    <div class="result-score">
+      نتيجتك:
+      ${escapeHtml(result.score ?? 0)}
+      / 10
+    </div>
+
+    <p style="text-align:center">
+      ${escapeHtml(
+        result.summary ||
+        "تم تصحيح الاختبار."
+      )}
+    </p>
+
+    ${
+      feedback.length
+      ?`
+        <div>
+
+          ${feedback.map(
+            item=>`
+
+              <div class="feedback-item">
+                ${escapeHtml(item)}
+              </div>
+
+            `
+          ).join("")}
+
+        </div>
+      `
+      :""
+    }
+
+  `;
+
+  $("#chatArea")
+    .appendChild(card);
+
+  scrollDown();
+
+}
+
+
+/* ======================================
+   تحميل صفحتين من PDF
+====================================== */
+
+async function loadStudyChunk(){
+
+  if(
+    !selectedFile ||
+    selectedFile.type !==
+      "application/pdf"
+  )
     return;
 
 
-  await setupAuthUI();
+  $("#typing")
+    .classList.add("active");
+
+  $("#typing").textContent =
+    `📚 جاري شرح الصفحات ${studyState.currentStart} و ${studyState.currentEnd}...`;
 
 
+  try{
 
-  $("#aiForm").addEventListener(
+    const base64 =
+      await fileToBase64(
+        selectedFile
+      );
+
+
+    const {
+      data,
+      error
+    } =
+      await client.functions.invoke(
+        "chemistry-ai",
+        {
+          body:{
+
+            action:
+              "study",
+
+            subject:
+              selectedSubject,
+
+            pageStart:
+              studyState.currentStart,
+
+            pageEnd:
+              studyState.currentEnd,
+
+            file:{
+              name:
+                selectedFile.name,
+
+              type:
+                selectedFile.type,
+
+              data:
+                base64
+            }
+
+          }
+        }
+      );
+
+
+    if(error)
+      throw error;
+
+
+    if(!data?.lesson)
+      throw new Error(
+        "لم يصل محتوى الدرس."
+      );
+
+
+    studyState.totalPages =
+      Number(
+        data.lesson.totalPages ||
+        studyState.totalPages ||
+        0
+      );
+
+
+    studyState.currentStart =
+      Number(
+        data.lesson.startPage ||
+        studyState.currentStart
+      );
+
+
+    studyState.currentEnd =
+      Number(
+        data.lesson.endPage ||
+        studyState.currentEnd
+      );
+
+
+    renderLesson(
+      data.lesson
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "STUDY ERROR:",
+      error
+    );
+
+
+    addMessage(
+      "❌ حدث خطأ أثناء تحليل الصفحات. حاول مرة أخرى أو تأكد أن ملف PDF واضح.",
+      "assistant"
+    );
+
+  }finally{
+
+    $("#typing")
+      .classList.remove("active");
+
+  }
+
+}
+
+
+/* ======================================
+   الرسائل العادية
+====================================== */
+
+$("#aiForm")
+  .addEventListener(
     "submit",
     async function(event){
 
       event.preventDefault();
 
 
+      if(!selectedSubject){
+
+        alert(
+          "اختر المادة أولًا."
+        );
+
+        return;
+      }
+
+
+      /*
+        أثناء دراسة PDF، الاختبار هو الذي يتحكم
+        في الانتقال بين الصفحات.
+      */
+
+      if(studyState.active)
+        return;
+
+
       const input =
         $("#message");
-
-      const button =
-        $("#send");
-
-      const typing =
-        $("#typing");
-
 
       const message =
         input.value.trim();
 
 
-      if(!message && !selectedFile){
-
-        input.focus();
-
+      if(
+        !message &&
+        !selectedFile
+      )
         return;
 
-      }
+
+      const button =
+        $("#send");
 
 
-      button.disabled =
-        true;
+      button.disabled = true;
 
 
-      let filePayload =
-        null;
+      try{
 
+        let filePayload = null;
 
-      try {
-
-
-        /* تجهيز الملف */
 
         if(selectedFile){
 
@@ -1131,60 +1758,47 @@ async function boot() {
         }
 
 
-
-        /* رسالة المستخدم */
-
         addMessage(
-
           message ||
-          "حلل الملف المرفق واشرحه لي.",
-
+          "اشرح الصورة المرفقة.",
           "user"
-
         );
 
 
         input.value = "";
 
-        input.style.height =
-          "auto";
 
+        $("#typing")
+          .classList.add("active");
 
-        typing.classList.add(
-          "active"
-        );
+        $("#typing").textContent =
+          "🤖 جاري التفكير...";
 
-
-        $("#chatArea").scrollTop =
-          $("#chatArea").scrollHeight;
-
-
-
-        /* استدعاء Gemini */
 
         const {
           data,
           error
         } =
           await client.functions.invoke(
-
             "chemistry-ai",
-
             {
+              body:{
 
-              body: {
+                action:
+                  "chat",
+
+                subject:
+                  selectedSubject,
 
                 message:
                   message ||
-                  "حلل الملف المرفق واشرحه لي بطريقة تعليمية.",
+                  "اشرح الصورة المرفقة.",
 
                 file:
                   filePayload
 
               }
-
             }
-
           );
 
 
@@ -1192,75 +1806,101 @@ async function boot() {
           throw error;
 
 
-        if(
-          !data ||
-          !data.answer
-        ){
-
-          throw new Error(
-            data?.error ||
-            "لم يصل رد من المساعد."
-          );
-
-        }
-
-
         addMessage(
-          data.answer,
+          data?.answer ||
+          "لم أحصل على إجابة.",
           "assistant"
         );
 
 
-        clearFile();
+        selectedFile = null;
+
+        $("#fileInput").value = "";
+
+        $("#attachmentPreview")
+          .classList.remove("active");
 
 
       }catch(error){
 
-
-        console.error(
-          "AI ERROR:",
-          error
-        );
-
+        console.error(error);
 
         addMessage(
-
-          "❌ حدث خطأ أثناء الاتصال بالمساعد. تأكد من أن Edge Function باسم chemistry-ai منشورة وأن GEMINI_API_KEY موجود في Secrets.",
-
+          "❌ حدث خطأ أثناء الاتصال بالمساعد.",
           "assistant"
-
         );
-
 
       }finally{
 
+        button.disabled = false;
 
-        typing.classList.remove(
-          "active"
-        );
-
-
-        button.disabled =
-          false;
-
-
-        input.focus();
+        $("#typing")
+          .classList.remove("active");
 
       }
 
     }
   );
 
+
+/* ======================================
+   textarea
+====================================== */
+
+$("#message")
+  .addEventListener(
+    "input",
+    function(){
+
+      this.style.height = "auto";
+
+      this.style.height =
+        Math.min(
+          this.scrollHeight,
+          140
+        ) + "px";
+
+    }
+  );
+
+
+$("#message")
+  .addEventListener(
+    "keydown",
+    function(event){
+
+      if(
+        event.key === "Enter" &&
+        !event.shiftKey
+      ){
+
+        event.preventDefault();
+
+        $("#aiForm")
+          .requestSubmit();
+
+      }
+
+    }
+  );
+
+
+/* ======================================
+   تشغيل الصفحة
+====================================== */
+
+async function boot(){
+
+  if(!(await protectPage()))
+    return;
+
+  await setupAuthUI();
+
 }
-
-
 
 boot();
 
-
 </script>
 
-
 </body>
-
 </html>
