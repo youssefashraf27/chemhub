@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1"
+>
+
+<title>شات الطلاب | ChemistryHub</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script src="supabase-config.js"></script>
+
+<script src="auth.js"></script>
+
+<style>
+
+.chat-page{
+  min-height:calc(100vh - 70px);
+  background:#f6f7f9;
+  padding:25px 15px;
+}
+
+.chat-container{
+  max-width:1050px;
+  height:calc(100vh - 120px);
+  min-height:600px;
+  margin:auto;
+  background:#fff;
+  border:1px solid #e3e7eb;
+  border-radius:20px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 10px 35px rgba(0,0,0,.06);
+}
+
+.chat-head{
+  padding:15px 20px;
+  border-bottom:1px solid #eee;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  background:#fff;
+}
+
+.chat-head-icon{
+  width:45px;
+  height:45px;
+  border-radius:14px;
+  background:#e7f6f1;
+  display:grid;
+  place-items:center;
+  font-size:23px;
+}
+
+.chat-head-info{
+  flex:1;
+}
+
+.chat-head-info h2{
+  margin:0;
+  font-size:17px;
+}
+
+.chat-head-info p{
+  margin:3px 0 0;
+  font-size:12px;
+  color:#777;
+}
+
+.online-count{
+  color:#07866c;
+  font-size:12px;
+  font-weight:700;
+}
+
+.pinned-box{
+  display:none;
+  padding:12px 18px;
+  background:#fff9e7;
+  border-bottom:1px solid #f0e2b7;
+}
+
+.pinned-box.active{
+  display:block;
+}
+
+.pinned-title{
+  font-size:12px;
+  color:#9a7410;
+  font-weight:800;
+}
+
+.pinned-text{
+  margin-top:4px;
+  font-size:13px;
+}
+
+.chat-tools{
+  padding:8px 15px;
+  border-bottom:1px solid #eee;
+}
+
+.chat-search{
+  width:100%;
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:9px 12px;
+  font-family:inherit;
+  outline:none;
+}
+
+.chat-messages{
+  flex:1;
+  overflow-y:auto;
+  padding:20px;
+  scroll-behavior:smooth;
+}
+
+.empty-chat{
+  height:100%;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  color:#888;
+}
+
+.message{
+  display:flex;
+  gap:10px;
+  margin-bottom:17px;
+  align-items:flex-start;
+}
+
+.message.mine{
+  flex-direction:row-reverse;
+}
+
+.message-avatar{
+  width:36px;
+  height:36px;
+  min-width:36px;
+  border-radius:50%;
+  background:#e5f5f0;
+  color:#07866c;
+  display:grid;
+  place-items:center;
+  font-weight:800;
+}
+
+.message.mine .message-avatar{
+  background:#07866c;
+  color:#fff;
+}
+
+.message-body{
+  max-width:75%;
+}
+
+.message-name{
+  font-size:11px;
+  color:#777;
+  margin:0 0 4px;
+}
+
+.message.mine .message-name{
+  text-align:right;
+}
+
+.message-bubble{
+  background:#f1f3f5;
+  border-radius:15px;
+  padding:9px 13px;
+  line-height:1.8;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.message.mine .message-bubble{
+  background:#07866c;
+  color:#fff;
+}
+
+.message-time{
+  font-size:9px;
+  color:#999;
+  margin-top:4px;
+}
+
+.attachment{
+  margin-top:8px;
+}
+
+.attachment img{
+  max-width:260px;
+  max-height:250px;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.file-attachment{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#fff;
+  border:1px solid #ddd;
+  color:#333;
+  text-decoration:none;
+  padding:9px 12px;
+  border-radius:10px;
+  font-size:12px;
+}
+
+.message.mine .file-attachment{
+  color:#222;
+}
+
+.message-actions{
+  margin-top:4px;
+  display:flex;
+  gap:5px;
+}
+
+.message-actions button{
+  border:0;
+  background:transparent;
+  color:#888;
+  font-family:inherit;
+  font-size:10px;
+  cursor:pointer;
+}
+
+.message-actions button:hover{
+  color:#07866c;
+}
+
+.chat-composer{
+  border-top:1px solid #eee;
+  padding:12px;
+  display:flex;
+  gap:8px;
+  align-items:flex-end;
+}
+
+.chat-attach{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:#f1f3f5;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  font-size:20px;
+}
+
+.chat-attach input{
+  display:none;
+}
+
+.chat-input{
+  flex:1;
+  min-height:42px;
+  max-height:120px;
+  resize:none;
+  border:1px solid #ddd;
+  border-radius:13px;
+  padding:10px;
+  font-family:inherit;
+  outline:none;
+}
+
+.chat-send{
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:12px;
+  background:#07866c;
+  color:white;
+  cursor:pointer;
+  font-size:19px;
+}
+
+.chat-send:disabled{
+  opacity:.5;
+}
+
+.file-preview{
+  display:none;
+  padding:7px 12px;
+  background:#f6f7f9;
+  border-radius:10px;
+  margin:0 12px 8px;
+  font-size:12px;
+  align-items:center;
+  gap:8px;
+}
+
+.file-preview.active{
+  display:flex;
+}
+
+.file-preview-name{
+  flex:1;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.file-preview button{
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  font-size:18px;
+}
+
+.loading{
+  text-align:center;
+  color:#888;
+  padding:20px;
+}
+
+@media(max-width:650px){
+
+  .chat-page{
+    padding:0;
+  }
+
+  .chat-container{
+    height:calc(100vh - 70px);
+    border-radius:0;
+    border:0;
+  }
+
+  .message-body{
+    max-width:82%;
+  }
+
+  .chat-messages{
+    padding:13px;
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<header class="topbar">
+
+  <div class="container nav">
+
+    <a class="brand" href="index.html">
+
+      <span class="brand-icon">🧪</span>
+
+      <span>
+        <span>ChemistryHub</span>
+        <small>شات الطلاب</small>
+      </span>
+
+    </a>
+
+    <div id="accountBox"></div>
+
+  </div>
+
+</header>
+
+
+<main class="chat-page">
+
+<div class="chat-container">
+
+
+  <div class="chat-head">
+
+    <div class="chat-head-icon">
+      💬
+    </div>
+
+    <div class="chat-head-info">
+
+      <h2 id="groupTitle">
+        شات الطلاب
+      </h2>
+
+      <p>
+        جروب خاص بطلاب فرقتك
+      </p>
+
+    </div>
+
+    <span
+      id="onlineCount"
+      class="online-count"
+    >
+      🟢 0 متصل
+    </span>
+
+  </div>
+
+
+  <div
+    id="pinnedBox"
+    class="pinned-box"
+  >
+
+    <div class="pinned-title">
+      📌 رسالة مثبتة
+    </div>
+
+    <div
+      id="pinnedText"
+      class="pinned-text"
+    ></div>
+
+  </div>
+
+
+  <div class="chat-tools">
+
+    <input
+      id="searchInput"
+      class="chat-search"
+      placeholder="🔎 ابحث في رسائل الجروب..."
+    >
+
+  </div>
+
+
+  <div
+    id="messages"
+    class="chat-messages"
+  >
+
+    <div class="loading">
+      جاري تحميل الشات...
+    </div>
+
+  </div>
+
+
+  <div
+    id="filePreview"
+    class="file-preview"
+  >
+
+    <span>📎</span>
+
+    <span
+      id="fileName"
+      class="file-preview-name"
+    ></span>
+
+    <button
+      id="removeFile"
+      type="button"
+    >
+      ×
+    </button>
+
+  </div>
+
+
+  <form
+    id="chatForm"
+    class="chat-composer"
+  >
+
+    <label class="chat-attach">
+
+      📎
+
+      <input
+        id="fileInput"
+        type="file"
+        accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.doc,.docx"
+      >
+
+    </label>
+
+
+    <textarea
+      id="chatInput"
+      class="chat-input"
+      rows="1"
+      placeholder="اكتب رسالتك..."
+    ></textarea>
+
+
+    <button
+      id="sendBtn"
+      class="chat-send"
+      type="submit"
+    >
+      ➤
+    </button>
+
+  </form>
+
+
+</div>
+
+</main>
+
+
+<script>
+
+const client =
+  window.supabaseClient ||
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+window.supabaseClient = client;
+
+
+let currentUser = null;
+
+let currentProfile = null;
+
+let currentGrade = null;
+
+let selectedFile = null;
+
+let chatChannel = null;
+
+let allMessages = [];
+
+
+const $ = id =>
+  document.getElementById(id);
+
+
+/* =====================================
+   تحويل الفرقة
+===================================== */
+
+function gradeTitle(grade){
+
+  const map = {
+    "Year 1":"الفرقة الأولى",
+    "Year 2":"الفرقة الثانية",
+    "Year 3":"الفرقة الثالثة",
+    "Year 4":"الفرقة الرابعة"
+  };
+
+  return map[grade] || grade;
+
+}
+
+
+/* =====================================
+   Escape
+===================================== */
+
+function esc(value){
+
+  return String(value ?? "")
+    .replace(
+      /[&<>"']/g,
+      c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+      }[c])
+    );
+
+}
+
+
+/* =====================================
+   الوقت
+===================================== */
+
+function formatTime(date){
+
+  return new Date(date)
+    .toLocaleTimeString(
+      "ar-EG",
+      {
+        hour:"2-digit",
+        minute:"2-digit"
+      }
+    );
+
+}
+
+
+/* =====================================
+   اسم الملف
+===================================== */
+
+function safeFileName(name){
+
+  return String(name || "file")
+    .replace(/[^\w\u0600-\u06FF.\- ]/g,"_")
+    .slice(0,100);
+
+}
+
+
+/* =====================================
+   تحميل المستخدم
+===================================== */
+
+async function loadUser(){
+
+  currentUser =
+    await getCurrentUser();
+
+  if(!currentUser){
+
+    location.href =
+      "login.html?next=" +
+      encodeURIComponent(location.href);
+
+    return false;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await client
+      .from("profiles")
+      .select(
+        "id,full_name,email,grade,role"
+      )
+      .eq(
+        "id",
+        currentUser.id
+      )
+      .single();
+
+
+  if(error)
+    throw error;
+
+
+  currentProfile = data;
+
+  currentGrade =
+    data.grade;
+
+
+  if(!currentGrade){
+
+    document.body.innerHTML = `
+
+      <main class="section">
+
+        <div class="container">
+
+          <div
+            class="card"
+            style="text-align:center"
+          >
+
+            <h2>
+              ⚠️ الفرقة غير محددة
+            </h2>
+
+            <p>
+              يجب أن تكون الفرقة محددة في حسابك
+              حتى تستطيع دخول شات الطلاب.
+            </p>
+
+            <a
+              class="btn primary"
+              href="account.html"
+            >
+              فتح حسابي
+            </a>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    `;
+
+    return false;
+
+  }
+
+
+  $("groupTitle").textContent =
+    "💬 " + gradeTitle(currentGrade);
+
+
+  return true;
+
+}
+
+
+/* =====================================
+   تحميل الرسائل
+===================================== */
+
+async function loadMessages(){
+
+  const {
+    data,
+    error
+  } =
+    await client
+      .from("ch_chat_messages")
+      .select("*")
+      .eq(
+        "grade",
+        currentGrade
+      )
+      .order(
+        "created_at",
+        {
+          ascending:true
+        }
+      )
+      .limit(150);
+
+
+  if(error)
+    throw error;
+
+
+  allMessages =
+    data || [];
+
+
+  renderMessages();
+
+  markSeen();
+
+}
+
+
+/* =====================================
+   روابط المرفقات
+===================================== */
+
+async function attachmentUrl(path){
+
+  if(!path)
+    return null;
+
+
+  const {
+    data,
+    error
+  } =
+    await client
+      .storage
+      .from("chemistryhub-chat")
+      .createSignedUrl(
+        path,
+        3600
+      );
+
+
+  if(error)
+    return null;
+
+
+  return data.signedUrl;
+
+}
+
+
+/* =====================================
+   عرض الرسائل
+===================================== */
+
+async function renderMessages(){
+
+  const box =
+    $("messages");
+
+
+  const search =
+    $("searchInput")
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  let list =
+    allMessages.filter(
+      message =>
+        !search ||
+        String(
+          message.message || ""
+        )
+        .toLowerCase()
+        .includes(search) ||
+
+        String(
+          message.sender_name || ""
+        )
+        .toLowerCase()
+        .includes(search)
+    );
+
+
+  if(!list.length){
+
+    box.innerHTML = `
+
+      <div class="empty-chat">
+
+        <div>
+
+          <div style="font-size:35px">
+            💬
+          </div>
+
+          <p>
+            لا توجد رسائل بعد.
+          </p>
+
+          <small>
+            كن أول من يبدأ الكلام 👋
+          </small>
+
+        </div>
+
+      </div>
+
+    `;
+
+    renderPinned();
+
+    return;
+
+  }
+
+
+  box.innerHTML = "";
+
+
+  for(const message of list){
+
+    const mine =
+      message.sender_id ===
+      currentUser.id;
+
+
+    const row =
+      document.createElement("div");
+
+
+    row.className =
+      "message" +
+      (mine ? " mine" : "");
+
+
+    const avatar =
+      document.createElement("div");
+
+    avatar.className =
+      "message-avatar";
+
+    avatar.textContent =
+      String(
+        message.sender_name ||
+        "ط"
+      ).trim().slice(0,1);
+
+
+    const body =
+      document.createElement("div");
+
+    body.className =
+      "message-body";
+
+
+    let attachmentHTML = "";
+
+
+    if(message.attachment_path){
+
+      const url =
+        await attachmentUrl(
+          message.attachment_path
+        );
+
+
+      if(url){
+
+        if(
+          String(
+            message.attachment_type || ""
+          ).startsWith("image/")
+        ){
+
+          attachmentHTML = `
+
+            <div class="attachment">
+
+              <a
+                href="${url}"
+                target="_blank"
+              >
+
+                <img
+                  src="${url}"
+                  alt="${esc(message.attachment_name)}"
+                >
+
+              </a>
+
+            </div>
+
+          `;
+
+        }else{
+
+          attachmentHTML = `
+
+            <div class="attachment">
+
+              <a
+                class="file-attachment"
+                href="${url}"
+                target="_blank"
+              >
+                📄
+                ${esc(message.attachment_name)}
+              </a>
+
+            </div>
+
+          `;
+
+        }
+
+      }
+
+    }
+
+
+    body.innerHTML = `
+
+      <div class="message-name">
+
+        ${esc(message.sender_name)}
+
+        ${message.pinned ? " 📌" : ""}
+
+      </div>
+
+
+      ${
+        message.message
+        ?`
+          <div class="message-bubble">
+            ${esc(message.message)}
+          </div>
+        `
+        :""
+      }
+
+
+      ${attachmentHTML}
+
+
+      <div class="message-time">
+
+        ${formatTime(message.created_at)}
+
+      </div>
+
+
+      <div class="message-actions">
+
+        ${
+          mine || currentProfile.role === "admin"
+          ?`
+
+            <button
+              onclick="deleteMessage('${message.id}')"
+            >
+              🗑 حذف
+            </button>
+
+          `
+          :""
+        }
+
+
+        ${
+          currentProfile.role === "admin"
+          ?`
+
+            <button
+              onclick="togglePin('${message.id}',${!message.pinned})"
+            >
+
+              ${
+                message.pinned
+                ? "إلغاء التثبيت"
+                : "📌 تثبيت"
+              }
+
+            </button>
+
+          `
+          :""
+        }
+
+      </div>
+
+    `;
+
+
+    row.appendChild(avatar);
+
+    row.appendChild(body);
+
+    box.appendChild(row);
+
+  }
+
+
+  box.scrollTop =
+    box.scrollHeight;
+
+
+  renderPinned();
+
+}
+
+
+/* =====================================
+   الرسالة المثبتة
+===================================== */
+
+function renderPinned(){
+
+  const pinned =
+    allMessages.find(
+      x => x.pinned
+    );
+
+
+  if(!pinned){
+
+    $("pinnedBox")
+      .classList.remove("active");
+
+    return;
+
+  }
+
+
+  $("pinnedText").textContent =
+    pinned.message ||
+    "📎 ملف مرفق";
+
+
+  $("pinnedBox")
+    .classList.add("active");
+
+}
+
+
+/* =====================================
+   حذف
+===================================== */
+
+window.deleteMessage =
+async function(id){
+
+  if(
+    !confirm(
+      "هل تريد حذف هذه الرسالة؟"
+    )
+  )
+    return;
+
+
+  const {
+    error
+  } =
+    await client
+      .from("ch_chat_messages")
+      .delete()
+      .eq(
+        "id",
+        id
+      );
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+
+  }
+
+};
+
+
+/* =====================================
+   تثبيت
+===================================== */
+
+window.togglePin =
+async function(id,pin){
+
+  if(
+    currentProfile.role !==
+    "admin"
+  )
+    return;
+
+
+  if(pin){
+
+    await client
+      .from("ch_chat_messages")
+      .update({
+        pinned:false
+      })
+      .eq(
+        "grade",
+        currentGrade
+      )
+      .eq(
+        "pinned",
+        true
+      );
+
+  }
+
+
+  const {
+    error
+  } =
+    await client
+      .from("ch_chat_messages")
+      .update({
+        pinned:pin
+      })
+      .eq(
+        "id",
+        id
+      );
+
+
+  if(error)
+    alert(error.message);
+
+};
+
+
+/* =====================================
+   رفع الملف
+===================================== */
+
+async function uploadAttachment(){
+
+  if(!selectedFile)
+    return null;
+
+
+  const safe =
+    safeFileName(
+      selectedFile.name
+    );
+
+
+  const path =
+    currentGrade +
+    "/" +
+    currentUser.id +
+    "/" +
+    Date.now() +
+    "-" +
+    safe;
+
+
+  const {
+    data,
+    error
+  } =
+    await client
+      .storage
+      .from("chemistryhub-chat")
+      .upload(
+        path,
+        selectedFile,
+        {
+          upsert:false,
+          contentType:
+            selectedFile.type
+        }
+      );
+
+
+  if(error)
+    throw error;
+
+
+  return data.path;
+
+}
+
+
+/* =====================================
+   إرسال
+===================================== */
+
+$("chatForm")
+  .addEventListener(
+    "submit",
+    async function(event){
+
+      event.preventDefault();
+
+
+      const input =
+        $("chatInput");
+
+
+      const text =
+        input.value.trim();
+
+
+      if(
+        !text &&
+        !selectedFile
+      )
+        return;
+
+
+      $("sendBtn")
+        .disabled = true;
+
+
+      try{
+
+        let path = null;
+
+
+        if(selectedFile){
+
+          path =
+            await uploadAttachment();
+
+        }
+
+
+        const {
+          error
+        } =
+          await client
+            .from("ch_chat_messages")
+            .insert({
+
+              sender_id:
+                currentUser.id,
+
+              grade:
+                currentGrade,
+
+              sender_name:
+                currentProfile.full_name ||
+                "طالب",
+
+              message:
+                text,
+
+              attachment_path:
+                path,
+
+              attachment_name:
+                selectedFile?.name ||
+                null,
+
+              attachment_type:
+                selectedFile?.type ||
+                null
+
+            });
+
+
+        if(error)
+          throw error;
+
+
+        input.value = "";
+
+        clearSelectedFile();
+
+
+      }catch(error){
+
+        console.error(error);
+
+        alert(
+          "حدث خطأ أثناء إرسال الرسالة: " +
+          error.message
+        );
+
+      }finally{
+
+        $("sendBtn")
+          .disabled = false;
+
+      }
+
+    }
+  );
+
+
+/* =====================================
+   الملف
+===================================== */
+
+$("fileInput")
+  .addEventListener(
+    "change",
+    function(){
+
+      const file =
+        this.files?.[0];
+
+
+      if(!file)
+        return;
+
+
+      if(
+        file.size >
+        10 * 1024 * 1024
+      ){
+
+        alert(
+          "الحد الأقصى لحجم الملف 10MB."
+        );
+
+        this.value = "";
+
+        return;
+
+      }
+
+
+      selectedFile =
+        file;
+
+
+      $("fileName")
+        .textContent =
+        file.name;
+
+
+      $("filePreview")
+        .classList.add(
+          "active"
+        );
+
+    }
+  );
+
+
+function clearSelectedFile(){
+
+  selectedFile = null;
+
+  $("fileInput").value = "";
+
+  $("filePreview")
+    .classList.remove(
+      "active"
+    );
+
+}
+
+
+$("removeFile")
+  .onclick =
+  clearSelectedFile;
+
+
+/* =====================================
+   البحث
+===================================== */
+
+$("searchInput")
+  .addEventListener(
+    "input",
+    renderMessages
+  );
+
+
+/* =====================================
+   Enter
+===================================== */
+
+$("chatInput")
+  .addEventListener(
+    "keydown",
+    function(event){
+
+      if(
+        event.key === "Enter" &&
+        !event.shiftKey
+      ){
+
+        event.preventDefault();
+
+        $("chatForm")
+          .requestSubmit();
+
+      }
+
+    }
+  );
+
+
+/* =====================================
+   Seen / unread
+===================================== */
+
+function seenKey(){
+
+  return (
+    "chemhub_chat_seen_" +
+    currentGrade
+  );
+
+}
+
+
+function markSeen(){
+
+  localStorage.setItem(
+    seenKey(),
+    new Date().toISOString()
+  );
+
+}
+
+
+function getUnreadCount(){
+
+  const last =
+    localStorage.getItem(
+      seenKey()
+    );
+
+
+  if(!last)
+    return allMessages.length;
+
+
+  return allMessages.filter(
+    x =>
+      new Date(x.created_at) >
+      new Date(last)
+  ).length;
+
+}
+
+
+/* =====================================
+   Realtime
+===================================== */
+
+function startRealtime(){
+
+  chatChannel =
+    client.channel(
+      "student-chat-" +
+      currentGrade
+    );
+
+
+  chatChannel
+
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"ch_chat_messages",
+        filter:
+          "grade=eq." +
+          currentGrade
+      },
+      payload => {
+
+        if(
+          !allMessages.some(
+            x =>
+              x.id ===
+              payload.new.id
+          )
+        ){
+
+          allMessages.push(
+            payload.new
+          );
+
+          renderMessages();
+
+        }
+
+      }
+    )
+
+
+    .on(
+      "postgres_changes",
+      {
+        event:"UPDATE",
+        schema:"public",
+        table:"ch_chat_messages",
+        filter:
+          "grade=eq." +
+          currentGrade
+      },
+      payload => {
+
+        const index =
+          allMessages.findIndex(
+            x =>
+              x.id ===
+              payload.new.id
+          );
+
+
+        if(index !== -1){
+
+          allMessages[index] =
+            payload.new;
+
+          renderMessages();
+
+        }
+
+      }
+    )
+
+
+    .on(
+      "postgres_changes",
+      {
+        event:"DELETE",
+        schema:"public",
+        table:"ch_chat_messages"
+      },
+      payload => {
+
+        allMessages =
+          allMessages.filter(
+            x =>
+              x.id !==
+              payload.old.id
+          );
+
+        renderMessages();
+
+      }
+    )
+
+
+    .on(
+      "presence",
+      {
+        event:"sync"
+      },
+      updateOnlineCount
+    )
+
+
+    .subscribe(
+      async status => {
+
+        if(
+          status === "SUBSCRIBED"
+        ){
+
+          await chatChannel.track({
+
+            user_id:
+              currentUser.id,
+
+            name:
+              currentProfile.full_name ||
+              "طالب"
+
+          });
+
+        }
+
+      }
+    );
+
+}
+
+
+function updateOnlineCount(){
+
+  if(!chatChannel)
+    return;
+
+
+  const state =
+    chatChannel.presenceState();
+
+
+  const ids =
+    new Set();
+
+
+  Object.values(state)
+    .flat()
+    .forEach(item => {
+
+      if(item.user_id)
+        ids.add(
+          item.user_id
+        );
+
+    });
+
+
+  $("onlineCount")
+    .textContent =
+      "🟢 " +
+      ids.size +
+      " متصل";
+
+}
+
+
+/* =====================================
+   تشغيل
+===================================== */
+
+async function bootChat(){
+
+  try{
+
+    const ok =
+      await loadUser();
+
+
+    if(!ok)
+      return;
+
+
+    await setupAuthUI();
+
+    await loadMessages();
+
+    startRealtime();
+
+
+  }catch(error){
+
+    console.error(error);
+
+    $("messages").innerHTML = `
+
+      <div class="empty-chat">
+
+        ❌ حدث خطأ في تحميل الشات.
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+bootChat();
+
+</script>
+
+</body>
+
+</html>
