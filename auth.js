@@ -42,10 +42,21 @@ function renderAuthUI(user) {
   const box = document.getElementById("accountBox");
   if (!box) return;
 
-  if (!user) {
-    box.innerHTML = `<a class="account-login" href="login.html">تسجيل الدخول</a>`;
-    return;
-  }
+if (!user) {
+
+  box.innerHTML =
+    `<a class="account-login" href="login.html">
+      تسجيل الدخول
+    </a>`;
+
+  const chatLink =
+    document.getElementById("chatNavLink");
+
+  if(chatLink)
+    chatLink.style.display = "none";
+
+  return;
+}
 
   const name = escapeHTML(getDisplayName(user));
   const email = escapeHTML(user.email || "");
