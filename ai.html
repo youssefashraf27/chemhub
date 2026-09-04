@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>المساعد الذكي | ChemistryHub</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+
+  <style>
+    .ai-page {
+      padding: 45px 0 80px;
+    }
+
+    .ai-box {
+      max-width: 850px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    .ai-messages {
+      min-height: 330px;
+      max-height: 55vh;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .ai-msg {
+      padding: 13px 16px;
+      border-radius: 16px;
+      margin: 10px 0;
+      white-space: pre-wrap;
+      line-height: 1.8;
+    }
+
+    .ai-user {
+      background: #07866c;
+      color: white;
+      margin-right: 15%;
+    }
+
+    .ai-bot {
+      background: rgba(127,127,127,.12);
+      margin-left: 15%;
+    }
+
+    .ai-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .ai-form textarea {
+      flex: 1;
+      resize: vertical;
+      min-height: 55px;
+      padding: 12px;
+      border: 1px solid #dce3ea;
+      border-radius: 12px;
+      font-family: inherit;
+      background: inherit;
+      color: inherit;
+    }
+
+    .ai-status {
+      text-align: center;
+      opacity: .7;
+      margin: 10px;
+    }
+
+    .ai-note {
+      font-size: .9rem;
+      opacity: .7;
+      margin-top: 12px;
+    }
+
+    @media(max-width:650px) {
+      .ai-form {
+        flex-direction: column;
+      }
+
+      .ai-user,
+      .ai-bot {
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="container nav">
+
+    <a class="brand" href="index.html">
+      <span class="brand-icon">🧪</span>
+
+      <span>
+        ChemistryHub
+        <small>المساعد الذكي</small>
+      </span>
+    </a>
+
+    <div id="accountBox"></div>
+
+  </div>
+</header>
+
+
+<main class="ai-page">
+
+  <div class="container">
+
+    <div class="section-head">
+      <span class="eyebrow">AI Assistant</span>
+
+      <h1>🤖 المساعد الذكي</h1>
+
+      <p>
+        اسأل عن الكيمياء أو اطلب شرحًا مبسطًا لأي موضوع دراسي.
+      </p>
+    </div>
+
+
+    <div class="card ai-box">
+
+      <div id="messages" class="ai-messages">
+
+        <div class="ai-msg ai-bot">
+          أهلًا بك 👋
+          أنا المساعد الذكي في ChemistryHub.
+          اكتب سؤالك وسأحاول مساعدتك.
+        </div>
+
+      </div>
+
+
+      <div id="status" class="ai-status"></div>
+
+
+      <form id="aiForm" class="ai-form">
+
+        <textarea
+          id="message"
+          placeholder="اكتب سؤالك هنا..."
+          required
+        ></textarea>
+
+        <button
+          id="send"
+          class="btn primary"
+          type="submit"
+        >
+          إرسال
+        </button>
+
+      </form>
+
+
+      <div class="ai-note">
+        تنبيه: إجابات الذكاء الاصطناعي قد تحتاج إلى مراجعة من مصدر علمي أو مدرس المادة.
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+
+<script>
+
+const client =
+  window.supabaseClient ||
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+window.supabaseClient = client;
+
+
+const $ = selector =>
+  document.querySelector(selector);
+
+
+function addMessage(text, type) {
+
+  const message = document.createElement("div");
+
+  message.className =
+    "ai-msg " +
+    (type === "user" ? "ai-user" : "ai-bot");
+
+  message.textContent = text;
+
+  $("#messages").appendChild(message);
+
+  $("#messages").scrollTop =
+    $("#messages").scrollHeight;
+}
+
+
+async function boot() {
+
+  // لازم الطالب يكون مسجل دخول
+  if (!(await protectPage())) {
+    return;
+  }
+
+  await setupAuthUI();
+
+
+  $("#aiForm").addEventListener(
+    "submit",
+    async function(event) {
+
+      event.preventDefault();
+
+
+      const input = $("#message");
+      const button = $("#send");
+      const status = $("#status");
+
+      const message =
+        input.value.trim();
+
+
+      if (!message) {
+        return;
+      }
+
+
+      addMessage(
+        message,
+        "user"
+      );
+
+
+      input.value = "";
+
+      button.disabled = true;
+
+      status.textContent =
+        "🤖 جاري التفكير...";
+
+
+      try {
+
+        const { data, error } =
+          await client.functions.invoke(
+            "chemistry-ai",
+            {
+              body: {
+                message: message
+              }
+            }
+          );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        if (!data || !data.answer) {
+
+          throw new Error(
+            data?.error ||
+            "لم يصل رد من المساعد"
+          );
+
+        }
+
+
+        addMessage(
+          data.answer,
+          "bot"
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "AI ERROR:",
+          error
+        );
+
+
+        addMessage(
+          "❌ تعذر الاتصال بالمساعد الذكي. تأكدي أن Edge Function باسم chemistry-ai منشورة وأن GEMINI_API_KEY موجود في Secrets.",
+          "bot"
+        );
+
+      } finally {
+
+        button.disabled = false;
+
+        status.textContent = "";
+
+        input.focus();
+
+      }
+
+    }
+  );
+
+}
+
+
+boot();
+
+</script>
+
+</body>
+</html>
