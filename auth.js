@@ -60,7 +60,12 @@ if (!user) {
 
   const name = escapeHTML(getDisplayName(user));
   const email = escapeHTML(user.email || "");
-  const adminLink = isAdmin(user) ? `<a href="admin.html">لوحة الإدارة</a>` : "";
+  const chatLink =
+  document.getElementById("chatNavLink");
+
+if(chatLink){
+  chatLink.style.display = "inline-flex";
+}
 
   box.innerHTML = `
     <div class="account-menu">
