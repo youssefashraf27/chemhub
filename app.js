@@ -264,57 +264,50 @@ function renderYear(year){
 
 function renderServices(list){
 
-  const box=$('#servicesGrid');
+  const box = $('#servicesGrid');
 
-  if(!box)return;
+  if(!box) return;
 
+  box.innerHTML = list.map(s => {
 
-  box.innerHTML=list.map(s=>{
+    let href = s.link || '#';
 
-    let href=s.link||'#';
-
-    let requiresLogin=Boolean(s.requires_login);
-
-
-    /*
-      المساعد الذكي:
-      مهما كان الرابط الموجود في قاعدة البيانات،
-      يفتح دائمًا صفحة ai.html.
-    */
-
-    if(
-      String(s.title||'').includes('المساعد الذكي') ||
-      String(s.title||'').toLowerCase().includes('ai')
-    ){
-
-      href='ai.html';
-
-      requiresLogin=true;
-
-    }
-
+    const isAI =
+      String(s.title || '').includes('المساعد الذكي') ||
+      String(s.title || '').toLowerCase().includes('ai');
 
     /*
-      المحاضرات والملفات:
-      لو الرابط غير موجود، ينزل لقسم المواد.
+      المساعد الذكي يفتح ai.html مباشرة.
+      تسجيل الدخول يتم فحصه داخل ai.html.
     */
-
-    if(
-      href==='#' &&
-      String(s.title||'').includes('المحاضرات')
-    ){
-
-      href='#subjects';
-
+    if(isAI){
+      href = 'ai.html';
     }
 
+    /*
+      المحاضرات والملفات
+    */
+    if(
+      !isAI &&
+      href === '#' &&
+      String(s.title || '').includes('المحاضرات')
+    ){
+      href = '#subjects';
+    }
+
+    /*
+      لو الخدمة عادية وتحتاج تسجيل دخول،
+      نستخدم الحماية القديمة.
+    */
+    const requiresLogin =
+      !isAI && Boolean(s.requires_login);
 
     return `
 
       <article class="card tool">
 
         <span class="card-icon">
-          ${esc(s.icon||'✨')}
+          ${esc(s.icon || '✨')}
         </span>
 
         <h3>
@@ -322,30 +315,28 @@ function renderServices(list){
         </h3>
 
         <p>
-          ${esc(s.description||'')}
+          ${esc(s.description || '')}
         </p>
 
         <a
           class="btn small"
           href="${esc(href)}"
-
           ${
             /^https?:/i.test(href)
-              ?'target="_blank" rel="noopener"'
-              :''
+              ? 'target="_blank" rel="noopener"'
+              : ''
           }
-
-          onclick="
-            return handleService(
-              event,
-              ${requiresLogin},
-              '${esc(s.title)}'
-            )
-          "
+          ${
+            requiresLogin
+              ? `onclick="return handleService(
+                  event,
+                  true,
+                  '${esc(s.title)}'
+                )"`
+              : ''
+          }
         >
-
           فتح الخدمة
-
         </a>
 
       </article>
@@ -354,12 +345,10 @@ function renderServices(list){
 
   }).join('')
 
-  ||`
-
+  || `
     <div class="card">
       لا توجد خدمات.
     </div>
-
   `;
 
 }
