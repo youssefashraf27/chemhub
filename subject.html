@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <script src="supabase-config.js"></script>
-<script src="auth.js"></script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +22,8 @@
     .empty-files{text-align:center;padding:35px 20px;border-radius:20px;background:var(--card,#fff);box-shadow:0 8px 25px rgba(0,0,0,.06)}
     .error-box{text-align:center;padding:50px 20px}
   </style>
+  <script src="supabase-config.js"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -115,6 +115,8 @@ if(!subjectName){
     ${filesHTML}
   `;
 }
+  <script>
+    protectPage();
 </script>
 </body>
 </html>
