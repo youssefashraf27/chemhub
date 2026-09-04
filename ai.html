@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
   <title>المساعد الذكي | ChemistryHub</title>
 
@@ -13,12 +19,13 @@
   <script src="auth.js"></script>
 
   <style>
+
     .ai-page {
       padding: 45px 0 80px;
     }
 
     .ai-box {
-      max-width: 850px;
+      max-width: 900px;
       margin: auto;
       padding: 25px;
     }
@@ -53,6 +60,7 @@
       display: flex;
       gap: 10px;
       margin-top: 15px;
+      align-items: stretch;
     }
 
     .ai-form textarea {
@@ -79,7 +87,83 @@
       margin-top: 12px;
     }
 
+    /* منطقة رفع الملفات */
+
+    .upload-area {
+      margin-top: 15px;
+      border: 2px dashed #07866c;
+      border-radius: 15px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .upload-area:hover {
+      background: rgba(7,134,108,.06);
+    }
+
+    .upload-area strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .upload-area small {
+      opacity: .7;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(127,127,127,.1);
+    }
+
+    .file-preview.active {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .file-preview img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .file-info {
+      flex: 1;
+      text-align: right;
+    }
+
+    .file-name {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .file-size {
+      font-size: .8rem;
+      opacity: .65;
+    }
+
+    .remove-file {
+      border: 0;
+      background: #c53b3b;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
     @media(max-width:650px) {
+
       .ai-form {
         flex-direction: column;
       }
@@ -89,28 +173,40 @@
         margin-left: 0;
         margin-right: 0;
       }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
 <header class="topbar">
+
   <div class="container nav">
 
     <a class="brand" href="index.html">
-      <span class="brand-icon">🧪</span>
+
+      <span class="brand-icon">
+        🧪
+      </span>
 
       <span>
         ChemistryHub
         <small>المساعد الذكي</small>
       </span>
+
     </a>
 
     <div id="accountBox"></div>
 
   </div>
+
 </header>
+
 
 
 <main class="ai-page">
@@ -118,39 +214,117 @@
   <div class="container">
 
     <div class="section-head">
-      <span class="eyebrow">AI Assistant</span>
 
-      <h1>🤖 المساعد الذكي</h1>
+      <span class="eyebrow">
+        AI Assistant
+      </span>
+
+      <h1>
+        🤖 المساعد الذكي
+      </h1>
 
       <p>
-        اسأل عن الكيمياء أو اطلب شرحًا مبسطًا لأي موضوع دراسي.
+        اسأل عن الكيمياء أو ارفع صورة أو ملف PDF ليقوم المساعد بتحليله.
       </p>
+
     </div>
+
 
 
     <div class="card ai-box">
 
+
       <div id="messages" class="ai-messages">
 
         <div class="ai-msg ai-bot">
+
           أهلًا بك 👋
+
           أنا المساعد الذكي في ChemistryHub.
-          اكتب سؤالك وسأحاول مساعدتك.
+
+          يمكنك كتابة سؤالك أو رفع صورة لسؤال كيمياء أو ملف PDF.
+
         </div>
 
       </div>
 
 
+
       <div id="status" class="ai-status"></div>
 
 
-      <form id="aiForm" class="ai-form">
+
+      <!-- رفع الملفات -->
+
+      <label
+        class="upload-area"
+        for="fileInput"
+      >
+
+        <strong>
+          📎 رفع ملف أو صورة
+        </strong>
+
+        <small>
+          PDF أو JPG أو PNG أو WEBP — الحد الأقصى 5MB
+        </small>
+
+      </label>
+
+
+      <input
+        id="fileInput"
+        type="file"
+        accept=".pdf,image/jpeg,image/png,image/webp,application/pdf"
+      >
+
+
+
+      <!-- معاينة الملف -->
+
+      <div
+        id="filePreview"
+        class="file-preview"
+      >
+
+        <div id="fileThumb"></div>
+
+        <div class="file-info">
+
+          <div
+            id="fileName"
+            class="file-name"
+          ></div>
+
+          <div
+            id="fileSize"
+            class="file-size"
+          ></div>
+
+        </div>
+
+        <button
+          id="removeFile"
+          class="remove-file"
+          type="button"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+
+      <form
+        id="aiForm"
+        class="ai-form"
+      >
 
         <textarea
           id="message"
-          placeholder="اكتب سؤالك هنا..."
-          required
+          placeholder="اكتب سؤالك هنا... مثال: اشرح لي السؤال الموجود في الصورة"
         ></textarea>
+
 
         <button
           id="send"
@@ -163,9 +337,13 @@
       </form>
 
 
+
       <div class="ai-note">
+
         تنبيه: إجابات الذكاء الاصطناعي قد تحتاج إلى مراجعة من مصدر علمي أو مدرس المادة.
+
       </div>
+
 
     </div>
 
@@ -174,7 +352,9 @@
 </main>
 
 
+
 <script>
+
 
 const client =
   window.supabaseClient ||
@@ -183,20 +363,46 @@ const client =
     SUPABASE_ANON_KEY
   );
 
+
 window.supabaseClient = client;
+
 
 
 const $ = selector =>
   document.querySelector(selector);
 
 
+
+let selectedFile = null;
+
+
+
+function formatSize(bytes) {
+
+  if (bytes < 1024)
+    return bytes + " B";
+
+  if (bytes < 1024 * 1024)
+    return (bytes / 1024).toFixed(1) + " KB";
+
+  return (bytes / 1024 / 1024).toFixed(1) + " MB";
+
+}
+
+
+
 function addMessage(text, type) {
 
-  const message = document.createElement("div");
+  const message =
+    document.createElement("div");
 
   message.className =
     "ai-msg " +
-    (type === "user" ? "ai-user" : "ai-bot");
+    (
+      type === "user"
+        ? "ai-user"
+        : "ai-bot"
+    );
 
   message.textContent = text;
 
@@ -204,15 +410,175 @@ function addMessage(text, type) {
 
   $("#messages").scrollTop =
     $("#messages").scrollHeight;
+
 }
+
+
+
+function showFilePreview(file) {
+
+  const preview =
+    $("#filePreview");
+
+  const thumb =
+    $("#fileThumb");
+
+  $("#fileName").textContent =
+    file.name;
+
+  $("#fileSize").textContent =
+    formatSize(file.size);
+
+
+  thumb.innerHTML = "";
+
+
+  if (file.type.startsWith("image/")) {
+
+    const img =
+      document.createElement("img");
+
+    img.src =
+      URL.createObjectURL(file);
+
+    img.alt =
+      file.name;
+
+    thumb.appendChild(img);
+
+  } else {
+
+    thumb.innerHTML =
+      `<div style="
+        font-size:40px;
+        width:60px;
+        text-align:center;
+      ">📄</div>`;
+
+  }
+
+
+  preview.classList.add("active");
+
+}
+
+
+
+function clearFile() {
+
+  selectedFile = null;
+
+  $("#fileInput").value = "";
+
+  $("#filePreview").classList.remove("active");
+
+  $("#fileThumb").innerHTML = "";
+
+  $("#fileName").textContent = "";
+
+  $("#fileSize").textContent = "";
+
+}
+
+
+
+$("#fileInput").addEventListener(
+  "change",
+  function() {
+
+    const file =
+      this.files?.[0];
+
+    if (!file)
+      return;
+
+
+    const allowed = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+
+    if (!allowed.includes(file.type)) {
+
+      alert(
+        "نوع الملف غير مدعوم. استخدم PDF أو JPG أو PNG أو WEBP."
+      );
+
+      clearFile();
+
+      return;
+
+    }
+
+
+    if (file.size > 5 * 1024 * 1024) {
+
+      alert(
+        "حجم الملف أكبر من 5MB."
+      );
+
+      clearFile();
+
+      return;
+
+    }
+
+
+    selectedFile = file;
+
+    showFilePreview(file);
+
+  }
+);
+
+
+
+$("#removeFile").onclick =
+  clearFile;
+
+
+
+function fileToBase64(file) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const reader =
+        new FileReader();
+
+      reader.onload = () => {
+
+        const result =
+          String(reader.result);
+
+        const base64 =
+          result.split(",")[1];
+
+        resolve(base64);
+
+      };
+
+      reader.onerror =
+        reject;
+
+      reader.readAsDataURL(file);
+
+    }
+  );
+
+}
+
 
 
 async function boot() {
 
-  // لازم الطالب يكون مسجل دخول
   if (!(await protectPage())) {
     return;
   }
+
 
   await setupAuthUI();
 
@@ -224,21 +590,76 @@ async function boot() {
       event.preventDefault();
 
 
-      const input = $("#message");
-      const button = $("#send");
-      const status = $("#status");
+      const input =
+        $("#message");
+
+      const button =
+        $("#send");
+
+      const status =
+        $("#status");
+
 
       const message =
         input.value.trim();
 
 
-      if (!message) {
+      if (!message && !selectedFile) {
+
+        alert(
+          "اكتب سؤالًا أو ارفع ملفًا/صورة."
+        );
+
         return;
+
+      }
+
+
+      let filePayload = null;
+
+
+      if (selectedFile) {
+
+        status.textContent =
+          "📎 جاري تجهيز الملف...";
+
+
+        const base64 =
+          await fileToBase64(
+            selectedFile
+          );
+
+
+        filePayload = {
+
+          name:
+            selectedFile.name,
+
+          type:
+            selectedFile.type,
+
+          data:
+            base64
+
+        };
+
+      }
+
+
+      let userText =
+        message || "حلل الملف المرفق واشرحه لي.";
+
+      if (selectedFile) {
+
+        userText +=
+          "\n\n📎 الملف: " +
+          selectedFile.name;
+
       }
 
 
       addMessage(
-        message,
+        userText,
         "user"
       );
 
@@ -248,24 +669,41 @@ async function boot() {
       button.disabled = true;
 
       status.textContent =
-        "🤖 جاري التفكير...";
+        "🤖 جاري التحليل...";
 
 
       try {
 
-        const { data, error } =
+        const {
+          data,
+          error
+        } =
           await client.functions.invoke(
             "chemistry-ai",
             {
               body: {
-                message: message
+
+                message:
+                  message ||
+                  "حلل الملف المرفق واشرح محتواه بطريقة تعليمية.",
+
+                file:
+                  filePayload
+
               }
             }
           );
 
 
         if (error) {
+
+          console.error(
+            "Function error:",
+            error
+          );
+
           throw error;
+
         }
 
 
@@ -273,7 +711,7 @@ async function boot() {
 
           throw new Error(
             data?.error ||
-            "لم يصل رد من المساعد"
+            "لم يصل رد من المساعد."
           );
 
         }
@@ -285,6 +723,9 @@ async function boot() {
         );
 
 
+        clearFile();
+
+
       } catch (error) {
 
         console.error(
@@ -294,8 +735,11 @@ async function boot() {
 
 
         addMessage(
-          "❌ تعذر الاتصال بالمساعد الذكي. تأكدي أن Edge Function باسم chemistry-ai منشورة وأن GEMINI_API_KEY موجود في Secrets.",
+
+          "❌ حدث خطأ أثناء تحليل الملف أو الاتصال بالمساعد. تأكد من نشر Edge Function بعد تعديلها.",
+
           "bot"
+
         );
 
       } finally {
@@ -318,5 +762,7 @@ boot();
 
 </script>
 
+
 </body>
+
 </html>
