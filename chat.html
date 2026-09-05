@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>شات الطلاب | ChemistryHub</title>
+  <link rel="stylesheet" href="chat.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <main class="chat-shell">
+    <section class="chat-card">
+      <header class="chat-header">
+        <a class="back-link" href="index.html">← الرئيسية</a>
+        <div class="chat-title">
+          <div class="chat-avatar">🧪</div>
+          <div>
+            <h1 id="groupTitle">شات الطلاب</h1>
+            <p id="groupSubtitle">جروب خاص بطلاب فرقتك</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <span id="onlineCount" class="online">● 0 متصل</span>
+          <span id="ownerBadge" class="owner-badge" hidden>👑 OWNER</span>
+        </div>
+      </header>
+
+      <div id="adminPanel" class="admin-panel" hidden></div>
+      <div id="lockBanner" class="lock-banner" hidden>🔒 <b>الشات مقفول</b><span id="lockMessage">لا يمكن إرسال رسائل حاليًا.</span></div>
+
+      <div id="pinned" class="pinned" hidden>
+        <strong>📌 رسالة مثبتة</strong>
+        <div id="pinnedText"></div>
+      </div>
+
+      <div class="chat-search-wrap">
+        <input id="searchInput" class="chat-search" type="search" placeholder="ابحث في رسائل الجروب...">
+      </div>
+
+      <div id="messages" class="messages">
+        <div class="loading">جاري تحميل الشات...</div>
+      </div>
+
+      <div id="filePreview" class="file-preview" hidden>
+        <span>📎</span>
+        <span id="fileName"></span>
+        <button id="clearFile" type="button" aria-label="إلغاء الملف">×</button>
+      </div>
+
+      <form id="composer" class="composer">
+        <label id="attachLabel" class="attach" title="إرفاق صورة أو ملف">
+          📎
+          <input id="fileInput" type="file"
+                 accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+        </label>
+        <textarea id="messageInput" rows="1" placeholder="اكتب رسالتك..."></textarea>
+        <button id="sendButton" type="submit" aria-label="إرسال">➤</button>
+      </form>
+      <div class="chat-note">الحد الأقصى للمرفق 10MB • جروب خاص بطلاب فرقتك</div>
+    </section>
+  </main>
+  <script src="chat.js"></script>
+</body>
+</html>
