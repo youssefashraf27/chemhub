@@ -23,13 +23,25 @@ async function boot(){
   profile=data; grade=data.grade;
   if(!grade){$("messages").innerHTML='<div class="empty">⚠️ لا توجد فرقة محددة في حسابك. حدّد الفرقة أولًا من صفحة الحساب.</div>';return;}
   $("groupTitle").textContent=(gradeNames[grade]||grade);
-  $("groupSubtitle").textContent="جروب خاص بطلاب فرقتك";
-  if(profile.role==="admin") $("ownerBadge").hidden=false;
+  $("topName").textContent=profile.full_name||profile.email||"طالب";
+  $("topRole").textContent=profile.role==="admin"?"👑 OWNER":"طالب";
+  $("topYear").textContent=grade;
+  $("topAvatar").textContent=(profile.full_name||"ط").trim().slice(0,1)||"ط";
+  renderGroups();
+  if(profile.role==="admin") $("ownerBadge")?.removeAttribute("hidden");
+  if(profile.role==="admin") $("adminCard").hidden=false;
   await loadSettings();
   await loadMessages();
   startRealtime();
 }
 
+function renderGroups(){const arr=["Year 1","Year 2","Year 3","Year 4"];const box=$("groupList");if(!box)return;box.innerHTML=arr.map((g,i)=>`<div class="group-item ${g===grade?'active':''}" onclick="selectGroup('${g}')"><span class="group-num">${i+1}</span><div><b>${gradeNames[g]}</b><small>${g===grade?'متصل الآن':'جروب منفصل'}</small></div></div>`).join("");}
+window.selectGroup=g=>{if(g!==grade)return alert("هذا الجروب مخصص لطلاب "+(gradeNames[g]||g)+". حسابك تابع لـ "+(gradeNames[grade]||grade)+".");};
+function renderMembers(){const box=$("membersList");if(!box)return;const map=new Map();messages.forEach(m=>{if(m.sender_id)map.set(m.sender_id,{id:m.sender_id,name:m.sender_name});});map.set(user.id,{id:user.id,name:profile.full_name||profile.email||"طالب"});const arr=[...map.values()].slice(0,8);$("memberCount").textContent=`(${arr.length})`;box.innerHTML=arr.map((m,i)=>`<div class="member"><span class="member-avatar">${esc((m.name||'ط').slice(0,1))}</span><div class="member-info"><b>${esc(m.name)}</b><small class="${m.id===user.id?'':'off'}">${m.id===user.id?'● متصل الآن':'عضو في الجروب'}</small></div>${m.id===user.id&&profile.role==='admin'?'<span class="owner-tag">Owner</span><span class="crown">♛</span>':''}</div>`).join("")||'<div class="empty">لا يوجد أعضاء ظاهرون بعد.</div>';}
+function updateStatus(){const el=$("chatStatus");if(!el)return;el.className=chatSettings.locked?'status-closed':'status-open';el.innerHTML=chatSettings.locked?'<b>الشات مقفول</b><small>لا يمكن للأعضاء إرسال رسائل حاليًا</small>':'<b>الشات مفتوح</b><small>يمكن لجميع الأعضاء إرسال الرسائل</small>';}
+window.pinLatest=async()=>{if(profile.role!=="admin")return;const last=messages[messages.length-1];if(!last)return alert("لا توجد رسائل لتثبيتها.");await pinMessage(last.id,true);};
+window.sendAdminNotice=async()=>{if(profile.role!=="admin")return;const t=prompt("اكتب الرسالة الجماعية:");if(!t?.trim())return;const {error}=await client.from("ch_chat_messages").insert({sender_id:user.id,sender_name:profile.full_name||"الإدارة",grade,message:"📣 "+t.trim()});if(error)alert(error.message);};
+window.showAdminStatus=()=>alert(`حالة الشات: ${chatSettings.locked?'مقفول':'مفتوح'}\nرفع الملفات: ${chatSettings.attachments_enabled?'مفعل':'متوقف'}\nالصلاحية: OWNER`);
 async function loadSettings(){
   const {data,error}=await client.from("ch_chat_settings").select("id,locked,attachments_enabled,lock_message").eq("id",1).maybeSingle();
   if(!error && data) chatSettings=data;
@@ -45,6 +57,7 @@ function applySettings(){
   const fileOff=!chatSettings.attachments_enabled && profile?.role!=="admin";
   $("fileInput").disabled=locked||fileOff;
   $("attachLabel").classList.toggle("disabled",locked||fileOff);
+  updateStatus();
 }
 function renderAdminPanel(){
   const panel=$("adminPanel");
@@ -65,6 +78,7 @@ async function signedUrl(path){if(!path)return null;const {data,error}=await cli
 async function render(){
   const box=$("messages"), q=$("searchInput").value.trim().toLowerCase();
   const list=messages.filter(m=>!q||String(m.message||"").toLowerCase().includes(q)||String(m.sender_name||"").toLowerCase().includes(q));
+  renderMembers();
   if(!list.length){box.innerHTML='<div class="empty">💬<br>لا توجد رسائل بعد.<br><small>ابدأ أول محادثة مع زملائك.</small></div>';renderPinned();return;}
   box.innerHTML="";
   for(const m of list){
