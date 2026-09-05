@@ -744,3 +744,5 @@ code{
 .account-page{max-width:650px;margin:auto;text-align:center}.account-details p{margin:10px}.profile-avatar{width:75px;height:75px;font-size:30px;margin:15px auto}
 .dark .account-toggle,.dark .account-dropdown{background:#15211f;border-color:#29403a}.dark .account-summary{border-color:#293b37}.dark .account-dropdown a:hover,.dark .account-dropdown button:hover{background:#1d302c}
 @media(max-width:900px){.account-box{margin-right:0;margin-left:auto}.account-label{display:none}.account-toggle{padding:5px}.account-dropdown{right:auto;left:0}}
+
+.account-avatar-img{width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;border:2px solid rgba(7,134,108,.15)}

@@ -25,6 +25,7 @@
     const user=await currentStudent();
     if(!user) return;
     const grade=user.profile?.grade || user.user_metadata?.grade || '';
+    const privileged = isAdmin(user);
     const year=yearNumber(grade);
     $('gradeBox').innerHTML = year
       ? `🎓 <strong>الفرقة ${year}</strong><br><small>تظهر لك اختبارات مواد فرقتك فقط.</small>`

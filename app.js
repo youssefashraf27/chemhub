@@ -272,14 +272,8 @@ function renderServices(list){
 
     let href = s.link || '#';
 
-    const isQuizBank =
-      String(s.title || '').includes('بنك الاختبارات') ||
-      String(s.title || '').includes('الاختبارات') ||
-      String(s.title || '').toLowerCase().includes('quiz');
-
-    if(isQuizBank){
-      href = 'quizzes.html';
-    }
+    const isQuizBank = String(s.title || '').includes('بنك الاختبارات') || String(s.title || '').toLowerCase().includes('quiz');
+    if (isQuizBank) href = 'quizzes.html';
 
     const isAI =
       String(s.title || '').includes('المساعد الذكي') ||
@@ -309,7 +303,7 @@ function renderServices(list){
       نستخدم الحماية القديمة.
     */
     const requiresLogin =
-      !isAI && !isQuizBank && Boolean(s.requires_login);
+      !isAI && Boolean(s.requires_login);
 
     return `
 

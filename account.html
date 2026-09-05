@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حسابي | ChemistryHub</title>
+<link rel="stylesheet" href="style.css"><script src="https://unpkg.com/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script src="auth.js"></script>
+<style>
+.account-page{padding:55px 20px 90px}.profile-card{max-width:650px;margin:auto;padding:32px}.profile-photo-wrap{position:relative;width:120px;height:120px;margin:0 auto 20px}.profile-photo,.profile-placeholder{width:120px;height:120px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:#e6f7f1;color:#07866c;font-size:48px;font-weight:800;border:4px solid rgba(7,134,108,.15)}.photo-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:10px}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;text-align:right;margin-top:25px}.profile-grid .field{padding:14px;border-radius:14px;background:rgba(7,134,108,.06)}.profile-grid small{display:block;color:#7a8798;margin-bottom:4px}.profile-actions{display:flex;gap:10px;justify-content:center;margin-top:25px;flex-wrap:wrap}.status-box{margin-top:15px;text-align:center}.remove-photo{display:none}.profile-role{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(7,134,108,.12);color:#07866c;font-weight:700}@media(max-width:600px){.profile-grid{grid-template-columns:1fr}.profile-card{padding:22px}}
+</style></head>
+<body>
+<header class="topbar"><div class="container nav"><a class="brand" href="index.html"><span class="brand-icon">🧪</span><span>ChemistryHub<small>حسابي</small></span></a><div id="accountBox"></div><a class="back-link" href="index.html">→ الرئيسية</a></div></header>
+<main class="account-page"><div class="container"><div class="card profile-card"><div id="accountContent"><p>جاري تحميل الحساب...</p></div></div></div></main>
+<script>
+const c=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const escA=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+async function bootAccount(){
+ const user=await getCurrentUser().catch(()=>null); if(!user){location.href='login.html?next='+encodeURIComponent(location.href);return;}
+ await setupAuthUI();
+ const {data:p}=await c.from('profiles').select('full_name,email,phone,grade,role,avatar_url').eq('id',user.id).maybeSingle();
+ const profile=p||{}; const name=profile.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'الطالب';
+ const avatar=profile.avatar_url||user.user_metadata?.avatar_url||'';
+ document.getElementById('accountContent').innerHTML=`
+ <div class="profile-photo-wrap">${avatar?`<img id="profilePhoto" class="profile-photo" src="${escA(avatar)}" alt="صورة الحساب">`:`<div id="profilePhoto" class="profile-placeholder">${escA(name.slice(0,1))}</div>`}</div>
+ <h1>${escA(name)}</h1><p>${escA(user.email||'')}</p><span class="profile-role">${profile.role==='owner'?'OWNER':profile.role==='admin'?'ADMIN':'عضو'}</span>
+ <div><label class="btn small photo-button">📷 اختيار صورة الحساب<input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" hidden></label></div>
+ <div class="profile-grid"><div class="field"><small>الاسم</small><strong>${escA(name)}</strong></div><div class="field"><small>البريد</small><strong>${escA(user.email||'—')}</strong></div><div class="field"><small>الهاتف</small><strong>${escA(profile.phone||'—')}</strong></div><div class="field"><small>الفرقة</small><strong>${escA(profile.grade||'—')}</strong></div></div>
+ <div id="photoStatus" class="status-box"></div>
+ <div class="profile-actions"><a class="btn primary" href="index.html">العودة للموقع</a>${isAdmin(user)?'<a class="btn" href="admin.html">لوحة الإدارة</a>':''}</div>`;
+ document.getElementById('avatarInput').onchange=uploadAvatar;
+}
+async function uploadAvatar(e){
+ const file=e.target.files?.[0]; if(!file)return; if(file.size>5*1024*1024){alert('الصورة يجب ألا تتجاوز 5MB.');return;}
+ const status=document.getElementById('photoStatus');status.textContent='جاري رفع الصورة...';
+ const user=await getCurrentUser(); const ext=(file.name.split('.').pop()||'jpg').toLowerCase(); const path=user.id+'/avatar.'+ext;
+ const r=await c.storage.from('chemistryhub-avatars').upload(path,file,{upsert:true,contentType:file.type});
+ if(r.error){status.textContent='تعذر رفع الصورة: '+r.error.message;return;}
+ const pub=c.storage.from('chemistryhub-avatars').getPublicUrl(path); const url=pub.data.publicUrl+'?v='+Date.now();
+ const upd=await c.from('profiles').update({avatar_url:url}).eq('id',user.id); if(upd.error){status.textContent='تم رفع الصورة لكن تعذر حفظها: '+upd.error.message;return;}
+ status.textContent='تم تحديث صورة الحساب بنجاح.'; const img=document.getElementById('profilePhoto'); if(img.tagName==='IMG')img.src=url; else {const n=document.createElement('img');n.id='profilePhoto';n.className='profile-photo';n.alt='صورة الحساب';n.src=url;img.replaceWith(n);}
+ setupAuthUI();
+}
+bootAccount();
+</script></body></html>

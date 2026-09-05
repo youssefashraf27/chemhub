@@ -13,16 +13,20 @@ create table if not exists public.profiles (
   full_name text,
   phone text,
   grade text,
-  role text not null default 'student' check (role in ('student','admin')),
+  role text not null default 'student' check (role in ('student','admin','owner')),
+  avatar_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.profiles enable row level security;
+alter table public.profiles add column if not exists avatar_url text;
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check check (role in ('student','admin','owner'));
 
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path=public as $$
-  select exists(select 1 from public.profiles where id=auth.uid() and role='admin');
+  select exists(select 1 from public.profiles where id=auth.uid() and role in ('admin','owner'));
 $$;
 
 create or replace function public.handle_new_user()
@@ -276,6 +280,22 @@ drop policy if exists chemistryhub_files_delete on storage.objects;
 create policy chemistryhub_files_delete on storage.objects for delete to authenticated using(bucket_id='chemistryhub-files' and public.is_admin());
 
 -- =========================
+-- Storage for profile avatars
+-- =========================
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('chemistryhub-avatars','chemistryhub-avatars',true,5242880,array['image/jpeg','image/png','image/webp'])
+on conflict(id) do update set public=true,file_size_limit=5242880,allowed_mime_types=array['image/jpeg','image/png','image/webp'];
+
+drop policy if exists chemistryhub_avatars_read on storage.objects;
+create policy chemistryhub_avatars_read on storage.objects for select to public using(bucket_id='chemistryhub-avatars');
+drop policy if exists chemistryhub_avatars_insert on storage.objects;
+create policy chemistryhub_avatars_insert on storage.objects for insert to authenticated with check(bucket_id='chemistryhub-avatars' and (split_part(name,'/',1)=auth.uid()::text));
+drop policy if exists chemistryhub_avatars_update on storage.objects;
+create policy chemistryhub_avatars_update on storage.objects for update to authenticated using(bucket_id='chemistryhub-avatars' and split_part(name,'/',1)=auth.uid()::text) with check(bucket_id='chemistryhub-avatars' and split_part(name,'/',1)=auth.uid()::text);
+drop policy if exists chemistryhub_avatars_delete on storage.objects;
+create policy chemistryhub_avatars_delete on storage.objects for delete to authenticated using(bucket_id='chemistryhub-avatars' and split_part(name,'/',1)=auth.uid()::text);
+
+-- =========================
 -- Updated-at helper
 -- =========================
 create or replace function public.set_updated_at() returns trigger language plpgsql as $$ begin new.updated_at=now(); return new; end; $$;
@@ -300,7 +320,8 @@ where y.year_number=1
 on conflict do nothing;
 
 -- ضع حساب المدير بعد تشغيل الملف:
--- update public.profiles set role='admin' where email='YOUR_EMAIL_HERE';
+-- OWNER: after creating your account, run this once:
+-- update public.profiles set role='owner' where email='YOUR_EMAIL_HERE';
 -- مثال:
 -- update public.profiles set role='admin' where email='abomotahosting@gmail.com';
 
