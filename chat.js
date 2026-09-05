@@ -36,7 +36,20 @@ async function boot(){
 }
 
 function renderGroups(){const arr=["Year 1","Year 2","Year 3","Year 4"];const box=$("groupList");if(!box)return;box.innerHTML=arr.map((g,i)=>`<div class="group-item ${g===grade?'active':''}" onclick="selectGroup('${g}')"><span class="group-num">${i+1}</span><div><b>${gradeNames[g]}</b><small>${g===grade?'متصل الآن':'جروب منفصل'}</small></div></div>`).join("");}
-window.selectGroup=g=>{if(g!==grade)return alert("هذا الجروب مخصص لطلاب "+(gradeNames[g]||g)+". حسابك تابع لـ "+(gradeNames[grade]||grade)+".");};
+window.selectGroup=async g=>{
+  if(g===grade)return;
+  if(profile?.role!=="admin")return alert("هذا الجروب مخصص لطلاب "+(gradeNames[g]||g)+". حسابك تابع لـ "+(gradeNames[grade]||grade)+".");
+  grade=g;
+  if(channel){try{await client.removeChannel(channel);}catch(e){} channel=null;}
+  $("groupTitle").textContent=gradeNames[grade]||grade;
+  $("onlineCount").textContent="0 متصل الآن";
+  $("topYear").textContent=grade;
+  $("chat-panel")?.setAttribute("data-grade",grade);
+  renderGroups();
+  await loadSettings();
+  await loadMessages();
+  startRealtime();
+};
 function renderMembers(){const box=$("membersList");if(!box)return;const map=new Map();messages.forEach(m=>{if(m.sender_id)map.set(m.sender_id,{id:m.sender_id,name:m.sender_name});});map.set(user.id,{id:user.id,name:profile.full_name||profile.email||"طالب"});const arr=[...map.values()].slice(0,8);$("memberCount").textContent=`(${arr.length})`;box.innerHTML=arr.map((m,i)=>`<div class="member"><span class="member-avatar">${esc((m.name||'ط').slice(0,1))}</span><div class="member-info"><b>${esc(m.name)}</b><small class="${m.id===user.id?'':'off'}">${m.id===user.id?'● متصل الآن':'عضو في الجروب'}</small></div>${m.id===user.id&&profile.role==='admin'?'<span class="owner-tag">Owner</span><span class="crown">♛</span>':''}</div>`).join("")||'<div class="empty">لا يوجد أعضاء ظاهرون بعد.</div>';}
 function updateStatus(){const el=$("chatStatus");if(!el)return;el.className=chatSettings.locked?'status-closed':'status-open';el.innerHTML=chatSettings.locked?'<b>الشات مقفول</b><small>لا يمكن للأعضاء إرسال رسائل حاليًا</small>':'<b>الشات مفتوح</b><small>يمكن لجميع الأعضاء إرسال الرسائل</small>';}
 window.pinLatest=async()=>{if(profile.role!=="admin")return;const last=messages[messages.length-1];if(!last)return alert("لا توجد رسائل لتثبيتها.");await pinMessage(last.id,true);};
