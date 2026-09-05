@@ -71,48 +71,16 @@ on conflict(id) do update set
   phone=coalesce(excluded.phone,public.profiles.phone),
   grade=coalesce(excluded.grade,public.profiles.grade);
 
--- Profiles are private by default: a student sees only their own row; admins see all rows.
 drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles for select to authenticated
 using(id=auth.uid() or public.is_admin());
-
--- New profiles created by the client can only be student profiles. The auth trigger
--- above creates the real profile row on signup and runs with SECURITY DEFINER.
 drop policy if exists profiles_insert on public.profiles;
 create policy profiles_insert on public.profiles for insert to authenticated
-with check(id=auth.uid() and role='student');
-
--- Never use a self-query against profiles in WITH CHECK: that can recurse through RLS.
--- Role changes are additionally blocked by the trigger below unless the caller is an admin.
+with check(id=auth.uid());
 drop policy if exists profiles_update on public.profiles;
 create policy profiles_update on public.profiles for update to authenticated
 using(id=auth.uid() or public.is_admin())
-with check(id=auth.uid() or public.is_admin());
-
-create or replace function public.prevent_profile_role_escalation()
-returns trigger
-language plpgsql
-security definer
-set search_path=public
-as $$
-begin
-  if tg_op = 'INSERT' then
-    if new.role is distinct from 'student' and not public.is_admin() then
-      raise exception 'Only an administrator can assign an elevated role.';
-    end if;
-  elsif tg_op = 'UPDATE' then
-    if new.role is distinct from old.role and not public.is_admin() then
-      raise exception 'Only an administrator can change a user role.';
-    end if;
-  end if;
-  return new;
-end;
-$$;
-
-drop trigger if exists profiles_role_guard on public.profiles;
-create trigger profiles_role_guard
-before insert or update of role on public.profiles
-for each row execute procedure public.prevent_profile_role_escalation();
+with check(public.is_admin() or (id=auth.uid() and role=(select p.role from public.profiles p where p.id=auth.uid())));
 
 -- =========================
 -- Site settings

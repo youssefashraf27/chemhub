@@ -58,7 +58,7 @@ function renderAuthUI(user) {
   const avatar = user?.profile?.avatar_url || user?.user_metadata?.avatar_url || '';
   const avatarHtml = avatar
     ? `<img src="${escapeHTML(avatar)}" alt="صورة الحساب" class="account-avatar-img">`
-    : `<span class="account-avatar-fallback" aria-hidden="true">${escapeHTML(name.slice(0, 1) || "ط")}</span>`;
+    : `${avatarHtml}`;
   const adminLink = isAdmin(user) ? `<a href="admin.html">لوحة الإدارة</a>` : "";
 
   box.innerHTML = `
@@ -83,13 +83,7 @@ function renderAuthUI(user) {
     const open = dropdown.classList.toggle("open");
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
   });
-  const closeDropdown = event => {
-    if (!box.contains(event.target)) {
-      dropdown.classList.remove("open");
-      toggle.setAttribute("aria-expanded", "false");
-    }
-  };
-  document.addEventListener("click", closeDropdown);
+  document.addEventListener("click", () => dropdown.classList.remove("open"), { once: true });
 }
 
 async function setupAuthUI() {
