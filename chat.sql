@@ -101,3 +101,25 @@ do $$ begin
   if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='ch_chat_messages') then alter publication supabase_realtime add table public.ch_chat_messages; end if;
   if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='ch_chat_settings') then alter publication supabase_realtime add table public.ch_chat_settings; end if;
 end $$;
+
+-- إظهار شارة OWNER لكل الطلاب بدون إعطاءهم صلاحيات الإدارة
+alter table public.ch_chat_messages add column if not exists sender_role text not null default 'student';
+
+create or replace function public.set_chat_sender_role()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+  select role into new.sender_role from public.profiles where id=new.sender_id;
+  new.sender_role:=coalesce(new.sender_role,'student');
+  return new;
+end $$;
+
+drop trigger if exists ch_chat_sender_role on public.ch_chat_messages;
+create trigger ch_chat_sender_role
+before insert or update of sender_id on public.ch_chat_messages
+for each row execute procedure public.set_chat_sender_role();
+
+update public.ch_chat_messages m
+set sender_role=coalesce(p.role,'student')
+from public.profiles p
+where p.id=m.sender_id;
+
