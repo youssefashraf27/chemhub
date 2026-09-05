@@ -3,7 +3,7 @@
 -- سيجعل زر "بنك الاختبارات" في الخدمات يفتح المجلد المنفصل.
 
 update public.ch_services
-set link = 'quiz-bank/quizzes.html'
+set link = 'quizzes.html'
 where title = 'بنك الاختبارات';
 
 -- لو لم تكن خدمة بنك الاختبارات موجودة عندك، أضفها من لوحة الإدارة:
