@@ -50,7 +50,7 @@ window.selectGroup=async g=>{
   await loadMessages();
   startRealtime();
 };
-function renderMembers(){const box=$("membersList");if(!box)return;const map=new Map();messages.forEach(m=>{if(m.sender_id)map.set(m.sender_id,{id:m.sender_id,name:m.sender_name});});map.set(user.id,{id:user.id,name:profile.full_name||profile.email||"طالب"});const arr=[...map.values()].slice(0,8);$("memberCount").textContent=`(${arr.length})`;box.innerHTML=arr.map((m,i)=>`<div class="member"><span class="member-avatar">${esc((m.name||'ط').slice(0,1))}</span><div class="member-info"><b>${esc(m.name)}</b><small class="${m.id===user.id?'':'off'}">${m.id===user.id?'● متصل الآن':'عضو في الجروب'}</small></div>${m.id===user.id&&profile.role==='admin'?'<span class="owner-tag">Owner</span><span class="crown">♛</span>':''}</div>`).join("")||'<div class="empty">لا يوجد أعضاء ظاهرون بعد.</div>';}
+async function renderMembers(){const box=$("membersList");if(!box)return;let arr=[];if(profile?.role==="admin"){const r=await client.from("profiles").select("id,full_name,email,grade,role").eq("grade",grade).order("full_name",{ascending:true});if(!r.error){arr=(r.data||[]).map(p=>({id:p.id,name:p.full_name||p.email||"طالب",role:p.role||"student"}));}}if(!arr.length){const map=new Map();messages.forEach(m=>{if(m.sender_id)map.set(m.sender_id,{id:m.sender_id,name:m.sender_name,role:m.sender_role||"student"});});map.set(user.id,{id:user.id,name:profile.full_name||profile.email||"طالب",role:profile.role||"student"});arr=[...map.values()];}const onlineIds=new Set();if(channel){Object.values(channel.presenceState()).flat().forEach(x=>{if(x.user_id)onlineIds.add(x.user_id);});}$("memberCount").textContent=`(${arr.length})`;box.innerHTML=arr.map(m=>`<div class="member"><span class="member-avatar">${esc((m.name||"ط").slice(0,1))}</span><div class="member-info"><b>${esc(m.name)}</b><small class="${onlineIds.has(m.id)?"":"off"}">${onlineIds.has(m.id)?"● متصل الآن":"عضو في الجروب"}</small></div>${m.role==="admin"?'<span class="owner-tag">OWNER</span><span class="crown">♛</span>':""}</div>`).join("")||'<div class="empty">لا يوجد أعضاء في هذه الفرقة بعد.</div>';}
 function updateStatus(){const el=$("chatStatus");if(!el)return;el.className=chatSettings.locked?'status-closed':'status-open';el.innerHTML=chatSettings.locked?'<b>الشات مقفول</b><small>لا يمكن للأعضاء إرسال رسائل حاليًا</small>':'<b>الشات مفتوح</b><small>يمكن لجميع الأعضاء إرسال الرسائل</small>';}
 window.pinLatest=async()=>{if(profile.role!=="admin")return;const last=messages[messages.length-1];if(!last)return alert("لا توجد رسائل لتثبيتها.");await pinMessage(last.id,true);};
 window.sendAdminNotice=async()=>{if(profile.role!=="admin")return;const t=prompt("اكتب الرسالة الجماعية:");if(!t?.trim())return;const {error}=await client.from("ch_chat_messages").insert({sender_id:user.id,sender_name:profile.full_name||"الإدارة",grade,message:"📣 "+t.trim()});if(error)alert(error.message);};
@@ -91,7 +91,7 @@ async function signedUrl(path){if(!path)return null;const {data,error}=await cli
 async function render(){
   const box=$("messages"), q=$("searchInput").value.trim().toLowerCase();
   const list=messages.filter(m=>!q||String(m.message||"").toLowerCase().includes(q)||String(m.sender_name||"").toLowerCase().includes(q));
-  renderMembers();
+  await renderMembers();
   if(!list.length){box.innerHTML='<div class="empty">💬<br>لا توجد رسائل بعد.<br><small>ابدأ أول محادثة مع زملائك.</small></div>';renderPinned();return;}
   box.innerHTML="";
   for(const m of list){
@@ -102,7 +102,7 @@ async function render(){
     if(m.attachment_path){const url=await signedUrl(m.attachment_path);if(url){attachment=String(m.attachment_type||"").startsWith("image/")?`<div class="attachment"><a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="${esc(m.attachment_name)}"></a></div>`:`<div class="attachment"><a class="file-link" href="${url}" target="_blank" rel="noopener">📄 ${esc(m.attachment_name||"ملف")}</a></div>`;}}
     const admin=profile.role==="admin";
     const actions=(mine||admin)?`<div class="actions">${(mine||admin)?`<button type="button" onclick="deleteMessage('${m.id}')">🗑 حذف</button>`:""}${admin?`<button type="button" onclick="pinMessage('${m.id}',${!m.pinned})">${m.pinned?'إلغاء التثبيت':'📌 تثبيت'}</button>`:""}</div>`:"";
-    const ownerMark=(admin&&m.sender_id===user.id)?' <span class="owner-mini">OWNER</span>':'';
+    const ownerMark=(m.sender_role==='admin')?' <span class="owner-mini">OWNER</span>':'';
     content.innerHTML=`<div class="msg-name">${esc(m.sender_name)}${ownerMark}${m.pinned?' 📌':''}</div>${m.message?`<div class="bubble">${esc(m.message)}</div>`:""}${attachment}<div class="msg-meta">${time(m.created_at)}</div>${actions}`;
     row.append(avatar,content);box.appendChild(row);
   }

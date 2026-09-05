@@ -15,6 +15,9 @@ create table if not exists public.ch_chat_messages (
 );
 
 alter table public.ch_chat_messages enable row level security;
+-- إظهار شارة OWNER للطلاب أيضًا
+alter table public.ch_chat_messages add column if not exists sender_role text not null default 'student';
+
 create index if not exists ch_chat_messages_grade_created_idx on public.ch_chat_messages(grade, created_at desc);
 
 create or replace function public.prepare_chat_message()
@@ -25,6 +28,7 @@ begin
   if p.id is null then raise exception 'لا يوجد ملف مستخدم لهذا الحساب'; end if;
   if p.grade is null or trim(p.grade) = '' then raise exception 'يجب تحديد الفرقة أولاً'; end if;
   new.sender_name := coalesce(nullif(trim(p.full_name), ''), split_part(coalesce(p.email,''),'@',1), 'طالب');
+  new.sender_role := coalesce(p.role,'student');
   new.grade := p.grade;
   return new;
 end;
@@ -32,6 +36,11 @@ $$;
 
 drop trigger if exists prepare_chat_message_trigger on public.ch_chat_messages;
 create trigger prepare_chat_message_trigger before insert on public.ch_chat_messages for each row execute procedure public.prepare_chat_message();
+update public.ch_chat_messages m
+set sender_role=coalesce(p.role,'student')
+from public.profiles p
+where p.id=m.sender_id;
+
 
 -- إعدادات الإدارة: قفل الشات / رفع الملفات
 create table if not exists public.ch_chat_settings (
