@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الاختبار | ChemistryHub</title>
+<link rel="stylesheet" href="../style.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../auth.js"></script>
+<style>
+.quiz-page{padding:45px 0 80px}.q-card{padding:22px;margin:15px 0}.q-option{display:block;padding:12px;border:1px solid #dce3ea;border-radius:10px;margin:8px 0;cursor:pointer}.q-option input{margin-left:8px}.result{padding:20px;border-radius:16px;background:rgba(7,134,108,.1);margin-top:20px;font-size:20px;text-align:center}.back{margin-bottom:18px;display:inline-block}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="container nav">
+<a class="brand" href="../index.html"><span class="brand-icon">🧪</span><span>ChemistryHub<small>الاختبارات</small></span></span></a>
+<div id="accountBox"></div>
+</div></header>
+<main class="quiz-page"><div class="container"><a class="btn small back" href="quizzes.html">← العودة لبنك الاختبارات</a><div id="quiz"></div></div></main>
+<script src="quiz-bank.js"></script>
+<script>bootSingleQuiz();</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>بنك الاختبارات | ChemistryHub</title>
+<link rel="stylesheet" href="../style.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../auth.js"></script>
+<style>
+.quiz-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.quiz-card{padding:22px;display:flex;flex-direction:column;gap:8px}
+.quiz-card .btn{align-self:flex-start;margin-top:8px}
+.subject-badge{display:inline-block;width:max-content;padding:5px 10px;border-radius:999px;background:rgba(7,134,108,.12);font-size:.85rem}
+.grade-box{margin-bottom:22px;padding:16px 18px}
+.empty{text-align:center}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="container nav">
+<a class="brand" href="../index.html"><span class="brand-icon">🧪</span><span>ChemistryHub<small>بنك الاختبارات</small></span></a>
+<div id="accountBox"></div>
+</div></header>
+<main class="section"><div class="container">
+<div class="section-head"><span class="eyebrow">Student Tools</span><h1>بنك الاختبارات</h1><p>اختبارات المواد الخاصة بفرقتك الدراسية فقط.</p></div>
+<div id="gradeBox" class="card grade-box"></div>
+<div id="list" class="quiz-list"></div>
+</div></main>
+<script src="quiz-bank.js"></script>
+<script>bootQuizBank();</script>
+</body>
+</html>
