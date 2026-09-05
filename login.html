@@ -43,9 +43,22 @@ function switchMode(mode){
 $("showPass").onclick=()=>{const p=$("password");p.type=p.type==="password"?"text":"password";$("showPass").textContent=p.type==="password"?"إظهار":"إخفاء"};
 $("toggleBtn").onclick=()=>switchMode(currentMode==="login"?"signup":"login");
 $("resetBtn").onclick=()=>switchMode("reset");
+function getSafeNext(){
+ const raw=new URLSearchParams(location.search).get("next");
+ if(!raw)return "index.html#subjects";
+ try{
+   const url=new URL(raw, location.href);
+   if(url.origin===location.origin) return url.href;
+ }catch(_){}
+ return "index.html#subjects";
+}
+
 window.addEventListener("DOMContentLoaded",async()=>{
- try{client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const {data:{session}}=await client.auth.getSession();if(session?.user)window.location.href="index.html#subjects";}
- catch(e){showMessage("تعذر تهيئة خدمة الحسابات.")}
+ try{
+   client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+   const {data:{session}}=await client.auth.getSession();
+   if(session?.user) window.location.replace(getSafeNext());
+ }catch(e){showMessage("تعذر تهيئة خدمة الحسابات.");}
 });
 $("authForm").addEventListener("submit",async e=>{
  e.preventDefault(); clearStatus(); $("submitBtn").disabled=true;
@@ -56,18 +69,21 @@ $("authForm").addEventListener("submit",async e=>{
    $("submitBtn").textContent="جاري التحقق...";
    const {data,error}=await client.auth.signInWithPassword({email,password});
    if(error) throw error;
-   window.location.href="index.html#subjects"; return;
+   window.location.replace(getSafeNext()); return;
   }
   if(currentMode==="signup"){
    $("submitBtn").textContent="جاري إنشاء الحساب...";
    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name:$("fullName").value.trim(),phone:$("phone").value.trim(),grade:$("grade").value}}});
    if(error) throw error;
-   if(data.session) {showMessage("تم إنشاء الحساب وتسجيل الدخول بنجاح.",true);setTimeout(()=>location.href="index.html#subjects",600)}
+   if(data.session) {showMessage("تم إنشاء الحساب وتسجيل الدخول بنجاح.",true);setTimeout(()=>window.location.replace(getSafeNext()),600)}
    else {showMessage("تم إنشاء الحساب. راجع بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.",true);setTimeout(()=>switchMode("login"),1800)}
    return;
   }
   $("submitBtn").textContent="جاري الإرسال...";
-  const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:new URL("reset-password.html",location.href).href});
+  const redirectUrl=new URL("reset-password.html",location.href);
+  const next=getSafeNext();
+  if(next!=="index.html#subjects") redirectUrl.searchParams.set("next",next);
+  const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:redirectUrl.href});
   if(error) throw error;
   showMessage("تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.",true);
  }catch(err){
