@@ -3,7 +3,7 @@
   window.supabaseClient = client;
   const $ = id => document.getElementById(id);
   const esc = x => String(x ?? '').replace(/[&<>"']/g, z => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[z]));
-  const quizUrl = id => { const u = new URL('quiz.html', document.baseURI); u.searchParams.set('id', id); return u.href; };
+  const quizUrl = id => `${window.location.origin}/quiz.html?id=${encodeURIComponent(id)}`;
   const setError = (el, title, message) => { if (el) el.innerHTML = `<div class="card empty"><h2>${esc(title)}</h2><p>${esc(message)}</p><a class="btn small" href="quizzes.html">العودة لبنك الاختبارات</a></div>`; };
 
   async function currentStudent(){
@@ -38,8 +38,9 @@
     const r=await client.from('ch_quizzes').select('id,title,description,subject_id,ch_subjects(name,ch_years(year_number,title)),ch_quiz_questions(id)').eq('active',true).order('created_at',{ascending:false});
     if(r.error){ console.error(r.error); $('list').innerHTML='<div class="card empty">تعذر تحميل الاختبارات.</div>'; return; }
     const rows=(r.data||[]).filter(q=>Number(q.ch_subjects?.ch_years?.year_number)===year);
-    $('list').innerHTML=rows.map(q=>`<article class="quiz-card card" data-quiz-url="${esc(quizUrl(q.id))}"><span class="subject-badge">${esc(q.ch_subjects?.name||'مادة')}</span><h3>${esc(q.title)}</h3><p>${esc(q.description||'اختبار للمراجعة والتدريب')}</p><small>${(q.ch_quiz_questions||[]).length} أسئلة</small><a class="btn small" href="${esc(quizUrl(q.id))}">ابدأ الاختبار ←</a></article>`).join('') || '<div class="card empty">لا توجد اختبارات متاحة لمواد فرقتك حالياً.</div>';
-    document.querySelectorAll('[data-quiz-url]').forEach(card => { card.addEventListener('click', e => { if (e.target.closest('a,button,input,select,textarea')) return; location.assign(card.dataset.quizUrl); }); });
+    $('list').innerHTML=rows.map(q=>`<article class="quiz-card card" data-quiz-url="${esc(quizUrl(q.id))}"><span class="subject-badge">${esc(q.ch_subjects?.name||'مادة')}</span><h3>${esc(q.title)}</h3><p>${esc(q.description||'اختبار للمراجعة والتدريب')}</p><small>${(q.ch_quiz_questions||[]).length} أسئلة</small><a class="btn small" href="${esc(quizUrl(q.id))}" data-open-quiz="${esc(q.id)}">ابدأ الاختبار ←</a></article>`).join('') || '<div class="card empty">لا توجد اختبارات متاحة لمواد فرقتك حالياً.</div>';
+    document.querySelectorAll('[data-quiz-url]').forEach(card => { card.addEventListener('click', e => { if (e.target.closest('a,button,input,select,textarea')) return; window.location.href = card.dataset.quizUrl; }); });
+    document.querySelectorAll('[data-open-quiz]').forEach(link => { link.addEventListener('click', e => { e.preventDefault(); window.location.href = link.href; }); });
   }
 
   async function bootSingleQuiz(){
