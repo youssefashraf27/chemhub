@@ -276,9 +276,9 @@ function renderServices(list){
       String(s.title || '').includes('المساعد الذكي') ||
       String(s.title || '').toLowerCase().includes('ai');
 
+    // بنك الاختبارات يفتح صفحة البنك مباشرة دائماً.
     const isQuizBank =
-      String(s.title || '').includes('بنك الاختبارات') ||
-      String(s.title || '').includes('الاختبارات');
+      String(s.title || '').includes('بنك الاختبارات');
 
     /*
       المساعد الذكي يفتح ai.html مباشرة.
@@ -288,9 +288,8 @@ function renderServices(list){
       href = 'ai.html';
     }
 
-    // بنك الاختبارات له مسار ثابت حتى لو كان الرابط المخزن في Supabase فارغاً أو قديماً.
     if(isQuizBank){
-      href = 'quiz.html';
+      href = 'https://chemistryhub.vercel.app/quizzes.html';
     }
 
     /*
@@ -309,7 +308,7 @@ function renderServices(list){
       نستخدم الحماية القديمة.
     */
     const requiresLogin =
-      !isAI && Boolean(s.requires_login);
+      !isAI && !isQuizBank && Boolean(s.requires_login);
 
     return `
 
@@ -331,7 +330,7 @@ function renderServices(list){
           class="btn small"
           href="${esc(href)}"
           ${
-            /^https?:/i.test(href)
+            /^https?:/i.test(href) && !isQuizBank
               ? 'target="_blank" rel="noopener"'
               : ''
           }
