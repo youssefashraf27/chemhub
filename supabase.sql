@@ -324,6 +324,20 @@ create table if not exists public.ch_quiz_attempts (
   created_at timestamptz not null default now()
 );
 
+-- Ensure PostgREST can discover the relationship to profiles.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.ch_quiz_attempts'::regclass
+      and conname = 'ch_quiz_attempts_user_id_profiles_fkey'
+  ) then
+    alter table public.ch_quiz_attempts
+      add constraint ch_quiz_attempts_user_id_profiles_fkey
+      foreign key (user_id) references public.profiles(id) on delete cascade;
+  end if;
+end $$;
+
 alter table public.ch_quiz_attempts enable row level security;
 
 drop policy if exists quiz_attempts_insert_own on public.ch_quiz_attempts;
