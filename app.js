@@ -276,6 +276,10 @@ function renderServices(list){
       String(s.title || '').includes('المساعد الذكي') ||
       String(s.title || '').toLowerCase().includes('ai');
 
+    const isQuizBank =
+      String(s.title || '').includes('بنك الاختبارات') ||
+      String(s.title || '').includes('الاختبارات');
+
     /*
       المساعد الذكي يفتح ai.html مباشرة.
       تسجيل الدخول يتم فحصه داخل ai.html.
@@ -284,18 +288,9 @@ function renderServices(list){
       href = 'ai.html';
     }
 
-    /*
-      بنك الاختبارات:
-      حتى لو كان الرابط في قاعدة البيانات فارغاً أو #،
-      نوجّه الخدمة دائماً إلى صفحة بنك الاختبارات.
-    */
-    const isQuizBank =
-      String(s.title || '').includes('بنك الاختبارات') ||
-      String(s.title || '').includes('اختبارات') ||
-      String(s.description || '').includes('اختبر نفسك');
-
-    if(!isAI && isQuizBank){
-      href = 'quizzes.html';
+    // بنك الاختبارات له مسار ثابت حتى لو كان الرابط المخزن في Supabase فارغاً أو قديماً.
+    if(isQuizBank){
+      href = 'quiz.html';
     }
 
     /*
@@ -303,7 +298,6 @@ function renderServices(list){
     */
     if(
       !isAI &&
-      !isQuizBank &&
       href === '#' &&
       String(s.title || '').includes('المحاضرات')
     ){

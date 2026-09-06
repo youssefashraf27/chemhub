@@ -44,7 +44,7 @@ $("showPass").onclick=()=>{const p=$("password");p.type=p.type==="password"?"tex
 $("toggleBtn").onclick=()=>switchMode(currentMode==="login"?"signup":"login");
 $("resetBtn").onclick=()=>switchMode("reset");
 window.addEventListener("DOMContentLoaded",async()=>{
- try{client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const {data:{session}}=await client.auth.getSession();if(session?.user)window.location.href="index.html#subjects";}
+ try{client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const {data:{session}}=await client.auth.getSession();if(session?.user){const next=new URLSearchParams(location.search).get("next");window.location.href=next||"index.html#subjects";}}
  catch(e){showMessage("تعذر تهيئة خدمة الحسابات.")}
 });
 $("authForm").addEventListener("submit",async e=>{
@@ -56,7 +56,8 @@ $("authForm").addEventListener("submit",async e=>{
    $("submitBtn").textContent="جاري التحقق...";
    const {data,error}=await client.auth.signInWithPassword({email,password});
    if(error) throw error;
-   window.location.href="index.html#subjects"; return;
+   const next=new URLSearchParams(location.search).get("next");
+   window.location.href=next||"index.html#subjects"; return;
   }
   if(currentMode==="signup"){
    $("submitBtn").textContent="جاري إنشاء الحساب...";
