@@ -305,3 +305,59 @@ on conflict do nothing;
 -- update public.profiles set role='admin' where email='abomotahosting@gmail.com';
 
 -- لا تضع service_role key في ملفات الموقع.
+
+-- =========================
+-- Account approval + quiz attempts
+-- =========================
+alter table public.profiles add column if not exists approved boolean not null default false;
+-- Existing accounts are trusted so the new approval flow only affects new registrations.
+update public.profiles set approved=true where approved=false;
+
+create table if not exists public.ch_quiz_attempts (
+  id uuid primary key default gen_random_uuid(),
+  quiz_id uuid not null references public.ch_quizzes(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  score integer not null default 0 check(score >= 0),
+  total_questions integer not null default 0 check(total_questions >= 0),
+  answered_questions integer not null default 0 check(answered_questions >= 0),
+  answers jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+alter table public.ch_quiz_attempts enable row level security;
+
+drop policy if exists quiz_attempts_insert_own on public.ch_quiz_attempts;
+create policy quiz_attempts_insert_own on public.ch_quiz_attempts
+for insert to authenticated
+with check(user_id=auth.uid() and exists(select 1 from public.profiles p where p.id=auth.uid() and p.approved=true));
+
+drop policy if exists quiz_attempts_select_own on public.ch_quiz_attempts;
+create policy quiz_attempts_select_own on public.ch_quiz_attempts
+for select to authenticated
+using(user_id=auth.uid() or public.is_admin());
+
+drop policy if exists quiz_attempts_admin_all on public.ch_quiz_attempts;
+create policy quiz_attempts_admin_all on public.ch_quiz_attempts
+for all to authenticated
+using(public.is_admin()) with check(public.is_admin());
+
+drop policy if exists profiles_admin_approval on public.profiles;
+create policy profiles_admin_approval on public.profiles
+for update to authenticated
+using(public.is_admin())
+with check(public.is_admin());
+
+-- New registrations start as pending.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+  insert into public.profiles(id,email,full_name,phone,grade,approved)
+  values(new.id,new.email,new.raw_user_meta_data->>'full_name',new.raw_user_meta_data->>'phone',new.raw_user_meta_data->>'grade',false)
+  on conflict(id) do update set
+    email=excluded.email,
+    full_name=coalesce(excluded.full_name,public.profiles.full_name),
+    phone=coalesce(excluded.phone,public.profiles.phone),
+    grade=coalesce(excluded.grade,public.profiles.grade),
+    updated_at=now();
+  return new;
+end; $$;

@@ -80,14 +80,14 @@ async function setupAuthUI() {
   const client = initSupabase();
   const { data: { user } } = await client.auth.getUser();
   if (user) {
-    const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade").eq("id", user.id).maybeSingle();
+    const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade,approved").eq("id", user.id).maybeSingle();
     if (profile) user.profile = profile;
   }
   renderAuthUI(user);
   client.auth.onAuthStateChange(async (_event, session) => {
     const nextUser = session?.user || null;
     if (nextUser) {
-      const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade").eq("id", nextUser.id).maybeSingle();
+      const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade,approved").eq("id", nextUser.id).maybeSingle();
       if (profile) nextUser.profile = profile;
     }
     renderAuthUI(nextUser);

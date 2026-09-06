@@ -56,14 +56,28 @@ $("authForm").addEventListener("submit",async e=>{
    $("submitBtn").textContent="جاري التحقق...";
    const {data,error}=await client.auth.signInWithPassword({email,password});
    if(error) throw error;
+   const signedUser=data?.user;
+   const {data:profile,error:profileError}=await client.from("profiles").select("approved,role").eq("id",signedUser.id).maybeSingle();
+   if(profileError) throw profileError;
+   if(!profile || profile.approved !== true){
+    await client.auth.signOut();
+    showMessage("حسابك في انتظار موافقة الإدارة. حاول مرة أخرى بعد اعتماد الحساب.");
+    return;
+   }
    window.location.href="index.html#subjects"; return;
   }
   if(currentMode==="signup"){
    $("submitBtn").textContent="جاري إنشاء الحساب...";
    const {data,error}=await client.auth.signUp({email,password,options:{data:{full_name:$("fullName").value.trim(),phone:$("phone").value.trim(),grade:$("grade").value}}});
    if(error) throw error;
-   if(data.session) {showMessage("تم إنشاء الحساب وتسجيل الدخول بنجاح.",true);setTimeout(()=>location.href="index.html#subjects",600)}
-   else {showMessage("تم إنشاء الحساب. راجع بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.",true);setTimeout(()=>switchMode("login"),1800)}
+   if(data.session) {
+    await client.auth.signOut();
+    showMessage("تم إرسال طلب إنشاء الحساب. الحساب الآن في انتظار موافقة الإدارة.",true);
+    setTimeout(()=>switchMode("login"),2200);
+   } else {
+    showMessage("تم إنشاء طلب الحساب. راجع بريدك الإلكتروني إذا طُلب التأكيد، ثم انتظر موافقة الإدارة.",true);
+    setTimeout(()=>switchMode("login"),2200);
+   }
    return;
   }
   $("submitBtn").textContent="جاري الإرسال...";
