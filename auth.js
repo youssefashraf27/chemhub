@@ -18,13 +18,7 @@ function getDisplayName(user) {
 }
 
 function isAdmin(user) {
-  const role = user?.app_metadata?.role || user?.profile?.role;
-  return role === 'admin' || role === 'owner';
-}
-
-function isOwner(user) {
-  const role = user?.app_metadata?.role || user?.profile?.role;
-  return role === 'owner';
+  return user?.app_metadata?.role === "admin" || user?.profile?.role === "admin";
 }
 
 async function getCurrentUser() {
@@ -55,16 +49,12 @@ function renderAuthUI(user) {
 
   const name = escapeHTML(getDisplayName(user));
   const email = escapeHTML(user.email || "");
-  const avatar = user?.profile?.avatar_url || user?.user_metadata?.avatar_url || '';
-  const avatarHtml = avatar
-    ? `<img src="${escapeHTML(avatar)}" alt="صورة الحساب" class="account-avatar-img">`
-    : `${avatarHtml}`;
   const adminLink = isAdmin(user) ? `<a href="admin.html">لوحة الإدارة</a>` : "";
 
   box.innerHTML = `
     <div class="account-menu">
       <button class="account-toggle" id="accountToggle" type="button" aria-expanded="false">
-        ${avatarHtml}
+        <span class="account-avatar">${name.slice(0,1)}</span>
         <span class="account-label"><strong>${name}</strong><small>${email}</small></span>
         <span>⌄</span>
       </button>
@@ -90,14 +80,14 @@ async function setupAuthUI() {
   const client = initSupabase();
   const { data: { user } } = await client.auth.getUser();
   if (user) {
-    const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade,avatar_url").eq("id", user.id).maybeSingle();
+    const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade").eq("id", user.id).maybeSingle();
     if (profile) user.profile = profile;
   }
   renderAuthUI(user);
   client.auth.onAuthStateChange(async (_event, session) => {
     const nextUser = session?.user || null;
     if (nextUser) {
-      const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade,avatar_url").eq("id", nextUser.id).maybeSingle();
+      const { data: profile } = await client.from("profiles").select("role,full_name,phone,grade").eq("id", nextUser.id).maybeSingle();
       if (profile) nextUser.profile = profile;
     }
     renderAuthUI(nextUser);
