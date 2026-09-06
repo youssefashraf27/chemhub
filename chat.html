@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>شات الطلاب | ChemistryHub</title>
-<link rel="stylesheet" href="chat.css?v=final3">
+<link rel="stylesheet" href="chat.css?v=final4">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script><script src="auth.js"></script>
 </head>
@@ -11,7 +11,7 @@
 <div class="site">
 <header class="topbar">
   <a class="brand" href="index.html"><span class="flask">⚗</span><span><b>Chemistry<span>Hub</span></b><small>شات الطلاب</small></span></a>
-  <div class="top-user"><div class="top-user-text"><b id="topName">...</b><small id="topRole">طالب</small></div><span class="year-pill" id="topYear">Year 1</span><span class="top-avatar" id="topAvatar">Y</span><button class="icon-btn" type="button">🔔<i id="notifDot">0</i></button><button class="icon-btn" type="button" onclick="document.documentElement.classList.toggle('light')">☾</button></div>
+  <div class="top-user"><div class="top-user-text"><b id="topName">...</b><small id="topRole">الطالب</small></div><span class="year-pill" id="topYear">Year 1</span><span class="top-avatar" id="topAvatar">Y</span><button class="icon-btn" type="button">🔔<i id="notifDot">0</i></button><button class="icon-btn" type="button" onclick="document.documentElement.classList.toggle('light')">☾</button></div>
 </header>
 <main class="layout">
 <aside class="left-panel panel">
@@ -38,10 +38,10 @@
 </section>
 <aside class="right-panel panel">
   <div class="members-head"><h2>أعضاء الجروب <span id="memberCount">(0)</span></h2><span>👥</span></div>
-  <div id="membersList" class="members-list"></div><button class="all-members" type="button">عرض كل الأعضاء</button>
-  <section class="admin-card" id="adminCard" hidden><h2>لوحة تحكم الإدارة <span>🛡️</span></h2><div class="admin-grid"><button onclick="pinLatest()">📌<b>تثبيت رسالة</b></button><button onclick="toggleChat()">🔒<b>قفل الشات</b></button><button onclick="sendAdminNotice()">📣<b>رسالة جماعية</b></button><button onclick="deleteGroupMessages()">🗑️<b>حذف الرسائل</b></button><button onclick="toggleAttachments()">📎<b>الملفات</b></button><button onclick="showAdminStatus()">⚙️<b>إعدادات الشات</b></button></div></section>
+  <div id="membersList" class="members-list"></div><button class="all-members" type="button" onclick="showAllMembers()">عرض كل الأعضاء</button>
+  <section class="admin-card" id="adminCard" hidden><h2>لوحة تحكم الإدارة <span>🛡️</span></h2><div class="admin-grid"><button onclick="pinLatest()">📌<b>تثبيت رسالة</b></button><button onclick="toggleChat()">🔒<b>قفل الشات</b></button><button onclick="sendAdminNotice()">📣<b>رسالة جماعية</b></button><button onclick="deleteGroupMessages()">🗑️<b>حذف الرسائل</b></button><button onclick="toggleAttachments()">📎<b>الملفات</b></button><button onclick="showAdminStatus()">⚙️<b>إعدادات الشات</b></button><button onclick="location.href='admin.html'">🛠️<b>إدارة الموقع</b></button></div></section>
   <section class="status-card"><h2>حالة الشات <span>🛡️</span></h2><div id="chatStatus" class="status-open"><b>الشات مفتوح</b><small>يمكن لجميع الأعضاء إرسال الرسائل</small></div></section>
 </aside>
 </main></div>
-<script src="chat.js?v=final3"></script>
+<script src="chat.js?v=final4"></script>
 </body></html>

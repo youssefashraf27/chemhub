@@ -1,5 +1,5 @@
--- ChemistryHub Student Chat - النسخة الأساسية بعد التحديث
--- شغّل هذا الملف مرة واحدة في Supabase SQL Editor.
+-- ChemistryHub Chat / Admin permissions - corrected version
+-- شغّل هذا الملف مرة واحدة في Supabase SQL Editor بعد رفع ملفات الموقع.
 
 create table if not exists public.ch_chat_messages (
   id uuid primary key default gen_random_uuid(),
@@ -15,34 +15,45 @@ create table if not exists public.ch_chat_messages (
 );
 
 alter table public.ch_chat_messages enable row level security;
--- إظهار شارة OWNER للطلاب أيضًا
 alter table public.ch_chat_messages add column if not exists sender_role text not null default 'student';
-
 create index if not exists ch_chat_messages_grade_created_idx on public.ch_chat_messages(grade, created_at desc);
 
+-- يملأ اسم المرسل ودوره. الطالب يظل مقيدًا بفرقته، بينما المدير يستطيع اختيار أي فرقة.
 create or replace function public.prepare_chat_message()
 returns trigger language plpgsql security definer set search_path=public as $$
 declare p public.profiles;
 begin
-  select * into p from public.profiles where id = new.sender_id;
+  select * into p from public.profiles where id = auth.uid();
   if p.id is null then raise exception 'لا يوجد ملف مستخدم لهذا الحساب'; end if;
-  if p.grade is null or trim(p.grade) = '' then raise exception 'يجب تحديد الفرقة أولاً'; end if;
+
+  new.sender_id := auth.uid();
   new.sender_name := coalesce(nullif(trim(p.full_name), ''), split_part(coalesce(p.email,''),'@',1), 'طالب');
   new.sender_role := coalesce(p.role,'student');
-  new.grade := p.grade;
+
+  if coalesce(p.role,'student') = 'admin' then
+    if new.grade is null or trim(new.grade) = '' then
+      raise exception 'يجب تحديد الفرقة للرسالة';
+    end if;
+  else
+    if p.grade is null or trim(p.grade) = '' then raise exception 'يجب تحديد الفرقة أولاً'; end if;
+    new.grade := p.grade;
+  end if;
+
   return new;
 end;
 $$;
 
 drop trigger if exists prepare_chat_message_trigger on public.ch_chat_messages;
-create trigger prepare_chat_message_trigger before insert on public.ch_chat_messages for each row execute procedure public.prepare_chat_message();
+create trigger prepare_chat_message_trigger
+before insert on public.ch_chat_messages
+for each row execute procedure public.prepare_chat_message();
+
 update public.ch_chat_messages m
 set sender_role=coalesce(p.role,'student')
 from public.profiles p
 where p.id=m.sender_id;
 
-
--- إعدادات الإدارة: قفل الشات / رفع الملفات
+-- إعدادات الإدارة
 create table if not exists public.ch_chat_settings (
   id integer primary key check(id=1),
   locked boolean not null default false,
@@ -60,66 +71,94 @@ declare s public.ch_chat_settings; p public.profiles;
 begin
   select * into s from public.ch_chat_settings where id=1;
   select * into p from public.profiles where id=auth.uid();
-  if coalesce(s.locked,false) and coalesce(p.role,'student') <> 'admin' then raise exception 'الشات مقفول حاليًا من الإدارة'; end if;
-  if not coalesce(s.attachments_enabled,true) and new.attachment_path is not null and coalesce(p.role,'student') <> 'admin' then raise exception 'رفع الملفات متوقف حاليًا من الإدارة'; end if;
+  if coalesce(s.locked,false) and coalesce(p.role,'student') <> 'admin' then
+    raise exception 'الشات مقفول حاليًا من الإدارة';
+  end if;
+  if not coalesce(s.attachments_enabled,true) and new.attachment_path is not null and coalesce(p.role,'student') <> 'admin' then
+    raise exception 'رفع الملفات متوقف حاليًا من الإدارة';
+  end if;
   return new;
 end;
 $$;
 drop trigger if exists chat_settings_guard on public.ch_chat_messages;
-create trigger chat_settings_guard before insert on public.ch_chat_messages for each row execute procedure public.chat_settings_guard();
+create trigger chat_settings_guard before insert on public.ch_chat_messages
+for each row execute procedure public.chat_settings_guard();
 
--- سياسات الرسائل
+-- الرسائل: الطالب يرى/يرسل في فرقته فقط، المدير يرى ويتحكم في كل الفرق.
 drop policy if exists ch_chat_select on public.ch_chat_messages;
-create policy ch_chat_select on public.ch_chat_messages for select to authenticated using(public.is_admin() or grade=(select p.grade from public.profiles p where p.id=auth.uid()));
+create policy ch_chat_select on public.ch_chat_messages
+for select to authenticated
+using(public.is_admin() or grade=(select p.grade from public.profiles p where p.id=auth.uid()));
+
 drop policy if exists ch_chat_insert on public.ch_chat_messages;
-create policy ch_chat_insert on public.ch_chat_messages for insert to authenticated with check(sender_id=auth.uid() and grade=(select p.grade from public.profiles p where p.id=auth.uid()));
+create policy ch_chat_insert on public.ch_chat_messages
+for insert to authenticated
+with check(
+  sender_id=auth.uid()
+  and (
+    public.is_admin()
+    or grade=(select p.grade from public.profiles p where p.id=auth.uid())
+  )
+);
+
 drop policy if exists ch_chat_delete on public.ch_chat_messages;
-create policy ch_chat_delete on public.ch_chat_messages for delete to authenticated using(sender_id=auth.uid() or public.is_admin());
+create policy ch_chat_delete on public.ch_chat_messages
+for delete to authenticated using(sender_id=auth.uid() or public.is_admin());
+
 drop policy if exists ch_chat_update_admin on public.ch_chat_messages;
-create policy ch_chat_update_admin on public.ch_chat_messages for update to authenticated using(public.is_admin()) with check(public.is_admin());
+create policy ch_chat_update_admin on public.ch_chat_messages
+for update to authenticated using(public.is_admin()) with check(public.is_admin());
 
--- سياسات إعدادات الشات
+-- إعدادات الشات: المدير فقط يستطيع تغييرها.
 drop policy if exists ch_chat_settings_read on public.ch_chat_settings;
-create policy ch_chat_settings_read on public.ch_chat_settings for select to authenticated using(true);
+create policy ch_chat_settings_read on public.ch_chat_settings
+for select to authenticated using(true);
+
 drop policy if exists ch_chat_settings_admin on public.ch_chat_settings;
-create policy ch_chat_settings_admin on public.ch_chat_settings for all to authenticated using(public.is_admin()) with check(public.is_admin());
+create policy ch_chat_settings_admin on public.ch_chat_settings
+for all to authenticated using(public.is_admin()) with check(public.is_admin());
 
--- التخزين: صور وPDF وWord وTXT حتى 10MB
-insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
-values('chemistryhub-chat','chemistryhub-chat',false,10485760,array['image/jpeg','image/png','image/webp','application/pdf','text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-on conflict(id) do update set public=false,file_size_limit=10485760,allowed_mime_types=excluded.allowed_mime_types;
-
+-- التخزين الخاص بالشات
 drop policy if exists chemistryhub_chat_files_select on storage.objects;
-create policy chemistryhub_chat_files_select on storage.objects for select to authenticated using(bucket_id='chemistryhub-chat' and (public.is_admin() or split_part(name,'/',1)=(select p.grade from public.profiles p where p.id=auth.uid())));
+create policy chemistryhub_chat_files_select on storage.objects
+for select to authenticated
+using(bucket_id='chemistryhub-chat' and (public.is_admin() or split_part(name,'/',1)=(select p.grade from public.profiles p where p.id=auth.uid())));
+
 drop policy if exists chemistryhub_chat_files_insert on storage.objects;
-create policy chemistryhub_chat_files_insert on storage.objects for insert to authenticated with check(bucket_id='chemistryhub-chat' and split_part(name,'/',1)=(select p.grade from public.profiles p where p.id=auth.uid()) and split_part(name,'/',2)=auth.uid()::text);
+create policy chemistryhub_chat_files_insert on storage.objects
+for insert to authenticated
+with check(
+  bucket_id='chemistryhub-chat'
+  and (
+    public.is_admin()
+    or (
+      split_part(name,'/',1)=(select p.grade from public.profiles p where p.id=auth.uid())
+      and split_part(name,'/',2)=auth.uid()::text
+    )
+  )
+);
+
 drop policy if exists chemistryhub_chat_files_delete on storage.objects;
-create policy chemistryhub_chat_files_delete on storage.objects for delete to authenticated using(bucket_id='chemistryhub-chat' and (public.is_admin() or split_part(name,'/',2)=auth.uid()::text));
+create policy chemistryhub_chat_files_delete on storage.objects
+for delete to authenticated
+using(bucket_id='chemistryhub-chat' and (public.is_admin() or split_part(name,'/',2)=auth.uid()::text));
+
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('chemistryhub-chat','chemistryhub-chat',false,10485760,array[
+'image/jpeg','image/png','image/webp','application/pdf','text/plain',
+'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+])
+on conflict(id) do update set
+  public=false,
+  file_size_limit=10485760,
+  allowed_mime_types=excluded.allowed_mime_types;
 
 -- Realtime
 do $$ begin
-  if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='ch_chat_messages') then alter publication supabase_realtime add table public.ch_chat_messages; end if;
-  if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='ch_chat_settings') then alter publication supabase_realtime add table public.ch_chat_settings; end if;
+  if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='ch_chat_messages') then
+    alter publication supabase_realtime add table public.ch_chat_messages;
+  end if;
+  if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='ch_chat_settings') then
+    alter publication supabase_realtime add table public.ch_chat_settings;
+  end if;
 end $$;
-
--- إظهار شارة OWNER لكل الطلاب بدون إعطاءهم صلاحيات الإدارة
-alter table public.ch_chat_messages add column if not exists sender_role text not null default 'student';
-
-create or replace function public.set_chat_sender_role()
-returns trigger language plpgsql security definer set search_path=public as $$
-begin
-  select role into new.sender_role from public.profiles where id=new.sender_id;
-  new.sender_role:=coalesce(new.sender_role,'student');
-  return new;
-end $$;
-
-drop trigger if exists ch_chat_sender_role on public.ch_chat_messages;
-create trigger ch_chat_sender_role
-before insert or update of sender_id on public.ch_chat_messages
-for each row execute procedure public.set_chat_sender_role();
-
-update public.ch_chat_messages m
-set sender_role=coalesce(p.role,'student')
-from public.profiles p
-where p.id=m.sender_id;
-
