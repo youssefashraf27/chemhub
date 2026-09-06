@@ -3,12 +3,12 @@ const c=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const esc=x=>String(x??'').replace(/[&<>"']/g,z=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[z]));
 async function boot(){
   if(!(await protectPage())) return;
-  await setupAuthUI();
+  const user=await setupAuthUI();
   const box=document.getElementById('list');
   box.innerHTML='<div class="card">جاري تحميل الاختبارات...</div>';
 
   const r=await c.from('ch_quizzes')
-    .select('id,title,description,subject_id,created_at,active')
+    .select('id,title,description,subject_id,created_at,active,ch_subjects(name,ch_years(year_number,title))')
     .eq('active',true)
     .order('created_at',{ascending:false});
 
@@ -18,7 +18,17 @@ async function boot(){
     return;
   }
 
-  const quizzes=r.data||[];
+  const grade=String(user?.profile?.grade||'').trim();
+  const yearMatch=grade.match(/(?:Year\s*)?([1-4])/i);
+  const studentYear=yearMatch ? Number(yearMatch[1]) : null;
+
+  // الطالب يرى فقط الاختبارات المرتبطة بمواد فرقته.
+  // الاختبار العام (بدون مادة) لا يظهر للطلاب حتى لا تختلط اختبارات الفرق.
+  const quizzes=(r.data||[]).filter(q=>{
+    const yearNumber=Number(q.ch_subjects?.ch_years?.year_number);
+    return studentYear && yearNumber===studentYear;
+  });
+
   if(!quizzes.length){
     box.innerHTML='<div class="card">لا توجد اختبارات متاحة حالياً.</div>';
     return;
