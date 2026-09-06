@@ -285,10 +285,25 @@ function renderServices(list){
     }
 
     /*
+      بنك الاختبارات:
+      حتى لو كان الرابط في قاعدة البيانات فارغاً أو #،
+      نوجّه الخدمة دائماً إلى صفحة بنك الاختبارات.
+    */
+    const isQuizBank =
+      String(s.title || '').includes('بنك الاختبارات') ||
+      String(s.title || '').includes('اختبارات') ||
+      String(s.description || '').includes('اختبر نفسك');
+
+    if(!isAI && isQuizBank){
+      href = 'quizzes.html';
+    }
+
+    /*
       المحاضرات والملفات
     */
     if(
       !isAI &&
+      !isQuizBank &&
       href === '#' &&
       String(s.title || '').includes('المحاضرات')
     ){
