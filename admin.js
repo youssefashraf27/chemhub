@@ -16,23 +16,24 @@ async function init(){
     if(sessionError) throw sessionError;
     if(!session){location.href="auth.html";return}
 
-    // Check admin through the SECURITY DEFINER RPC first.
-    // This avoids RLS/policy conflicts when reading the profile row.
-    const {data:isAdmin,error:adminError}=await sb.rpc("is_admin");
-    if(adminError){
-      console.error("Admin check RPC error:",adminError);
-      throw new Error("تعذر التحقق من صلاحيات المدير: "+adminError.message);
-    }
-    if(isAdmin !== true){
-      alert("ليس لديك صلاحية الدخول إلى لوحة الإدارة. تأكد أن role في profiles = admin.");
-      location.href="index.html";
-      return;
-    }
-
-    const {data:profile}=await sb.from("profiles")
+    // Check the logged-in user's profile directly.
+    // This avoids depending on PostgREST's schema cache for is_admin().
+    const {data:profile,error:profileError}=await sb.from("profiles")
       .select("role,full_name,email")
       .eq("id",session.user.id)
       .maybeSingle();
+    if(profileError){
+      console.error("Profile/admin check error:",profileError);
+      throw new Error("تعذر قراءة بيانات حسابك من Supabase: "+profileError.message);
+    }
+    if(!profile){
+      throw new Error("لم يتم العثور على ملف حسابك في جدول profiles.");
+    }
+    if(profile.role !== "admin"){
+      alert("ليس لديك صلاحية الدخول إلى لوحة الإدارة. قيمة role لحسابك ليست admin.");
+      location.href="index.html";
+      return;
+    }
 
     currentAdmin=session.user;
     $("adminEmail").textContent=
