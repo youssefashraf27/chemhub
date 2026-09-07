@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style type="text/css">
+        html,
+        body,
+        #mapDiv {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mapDiv"></div>
+
+    <script nonce="EaATfQ7GfVbUW13mpLXylg">
+        function onEmbedLoad() {
+            initEmbed([null, null, null, null, null, [], null, ["en", "eg"],
+                [null, null, null, "/maps/api/js/ApplicationService.GetEntityDetails", "/maps/embed/upgrade204", null, "/maps/embed/record204"], null, null, null, null, null, null, null, null, "lmeeap7dKoKhi-gP8O6u0Ag", null, null, null, [
+                    [
+                        [3454.256249216061, 31.20623257545648, 30.02928507493126],
+                        [0, 0, 0], null, 13.10000038146973
+                    ], null, 0
+                ], null, null, null, 0, null, null, null, null, null, null, [1]
+            ]);
+        }
+
+        function onApiLoad() {
+            var embed = document.createElement('script');
+            embed.src = "https://maps.gstatic.com/maps-api-v3/embed/js/66/3d/init_embed.js";
+            document.body.appendChild(embed);
+        }
+    </script>
+    <link rel="preload" href="https://maps.gstatic.com/maps-api-v3/embed/js/66/3d/init_embed.js" nonce="EaATfQ7GfVbUW13mpLXylg" as="script" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmL18misQw9KdwqGaw3zHkitj8vG6QF2Y&amp;paint_origin=&amp;libraries=geometry,search&amp;v=weekly&amp;loading=async&amp;language=en&amp;region=eg&amp;experimentation=allowed&amp;callback=onApiLoad"
+        nonce="EaATfQ7GfVbUW13mpLXylg" async defer></script>
+</body>
+
+</html>

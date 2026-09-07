@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول | EduChem Assiut</title>
+<link rel="icon" type="image/jpeg" href="https://b.aun.edu.eg/main/sites/default/files/news/0d98f0f4-3d18-4aad-9fe4-95125715c4cd.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="auth.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="bg-orb orb-1"></div><div class="bg-orb orb-2"></div><div class="grid-bg"></div>
+<main class="auth-shell">
+  <section class="brand-panel">
+    <a class="back-link" href="index.html"><i class="fas fa-arrow-right"></i> العودة للموقع</a>
+    <div class="brand-mark"><i class="fas fa-flask-vial"></i></div>
+    <h1>EduChem <span>Assiut</span></h1>
+    <p>حسابك الدراسي في مكان واحد</p>
+    <div class="feature-list">
+      <div><i class="fas fa-chart-line"></i><span>تابع نتائج اختباراتك</span></div>
+      <div><i class="fas fa-user-graduate"></i><span>بياناتك الدراسية محفوظة بأمان</span></div>
+      <div><i class="fas fa-layer-group"></i><span>محتوى مناسب لفرقتك الدراسية</span></div>
+    </div>
+  </section>
+
+  <section class="auth-card">
+    <div class="tabs">
+      <button class="tab active" data-mode="login">تسجيل الدخول</button>
+      <button class="tab" data-mode="signup">إنشاء حساب</button>
+    </div>
+
+    <div id="alert" class="alert" role="alert"></div>
+
+    <form id="loginForm" class="form active">
+      <div class="field">
+        <label for="loginEmail">البريد الإلكتروني</label>
+        <div class="input-wrap"><i class="far fa-envelope"></i><input id="loginEmail" type="email" autocomplete="email" required placeholder="example@email.com"></div>
+      </div>
+      <div class="field">
+        <label for="loginPassword">كلمة السر</label>
+        <div class="input-wrap"><i class="fas fa-lock"></i><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••"><button type="button" class="eye" data-target="loginPassword"><i class="far fa-eye"></i></button></div>
+      </div>
+      <div class="form-row"><label class="remember"><input id="remember" type="checkbox" checked><span>تذكرني</span></label><button type="button" id="forgotBtn" class="link-btn">نسيت كلمة السر؟</button></div>
+      <button class="submit" type="submit"><span>دخول</span><i class="fas fa-arrow-left"></i></button>
+    </form>
+
+    <form id="signupForm" class="form">
+      <div class="field">
+        <label for="fullName">الاسم الرباعي</label>
+        <div class="input-wrap"><i class="far fa-id-card"></i><input id="fullName" type="text" autocomplete="name" required minlength="8" placeholder="اكتب الاسم الرباعي"></div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label for="department">الفرقة</label><div class="input-wrap select-wrap"><i class="fas fa-graduation-cap"></i><select id="department" required><option value="">اختر الفرقة</option><option value="الأولى">الأولى</option><option value="الثانية">الثانية</option><option value="الثالثة">الثالثة</option><option value="الرابعة">الرابعة</option></select></div></div>
+        <div class="field"><label for="phone">رقم الهاتف</label><div class="input-wrap"><i class="fas fa-phone"></i><input id="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="01xxxxxxxxx"></div></div>
+      </div>
+      <div class="field"><label for="signupEmail">البريد الإلكتروني</label><div class="input-wrap"><i class="far fa-envelope"></i><input id="signupEmail" type="email" autocomplete="email" required placeholder="example@email.com"></div></div>
+      <div class="field"><label for="signupPassword">كلمة السر</label><div class="input-wrap"><i class="fas fa-lock"></i><input id="signupPassword" type="password" autocomplete="new-password" required minlength="8" placeholder="8 أحرف على الأقل"><button type="button" class="eye" data-target="signupPassword"><i class="far fa-eye"></i></button></div></div>
+      <div class="field"><label for="signupPassword2">تأكيد كلمة السر</label><div class="input-wrap"><i class="fas fa-shield-alt"></i><input id="signupPassword2" type="password" autocomplete="new-password" required minlength="8" placeholder="أعد كتابة كلمة السر"><button type="button" class="eye" data-target="signupPassword2"><i class="far fa-eye"></i></button></div></div>
+      <button class="submit" type="submit"><span>إنشاء الحساب</span><i class="fas fa-user-plus"></i></button>
+      <p class="terms">بإنشاء الحساب أنت توافق على استخدام الموقع لأغراض تعليمية.</p>
+    </form>
+
+    <form id="resetForm" class="form">
+      <button type="button" id="backLogin" class="back-form"><i class="fas fa-arrow-right"></i> العودة لتسجيل الدخول</button>
+      <h2>استعادة كلمة السر</h2><p class="muted">اكتب بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة السر.</p>
+      <div class="field"><label for="resetEmail">البريد الإلكتروني</label><div class="input-wrap"><i class="far fa-envelope"></i><input id="resetEmail" type="email" autocomplete="email" required placeholder="example@email.com"></div></div>
+      <button class="submit" type="submit"><span>إرسال رابط الاستعادة</span><i class="fas fa-paper-plane"></i></button>
+    </form>
+
+    <div class="footer-note"><i class="fas fa-shield-halved"></i> تسجيل آمن عبر Supabase</div>
+  </section>
+</main>
+<script src="auth.js"></script>
+</body>
+</html>
