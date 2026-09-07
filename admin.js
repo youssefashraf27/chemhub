@@ -12,9 +12,9 @@ function fmtDate(v){return v?new Date(v).toLocaleString("ar-EG",{dateStyle:"medi
 
 async function init(){
   const {data:{session}}=await sb.auth.getSession();
-  if(!session){location.href="../auth.html";return}
+  if(!session){location.href="auth.html";return}
   const {data:profile,error}=await sb.from("profiles").select("role,full_name,email").eq("id",session.user.id).maybeSingle();
-  if(error||!profile||profile.role!=="admin"){alert("ليس لديك صلاحية الدخول إلى لوحة الإدارة.");location.href="../index.html";return}
+  if(error||!profile||profile.role!=="admin"){alert("ليس لديك صلاحية الدخول إلى لوحة الإدارة.");location.href="index.html";return}
   currentAdmin=session.user;
   $("adminEmail").textContent=profile.full_name?`${profile.full_name} — ${session.user.email}`:session.user.email;
   $("loading").classList.add("hidden");$("app").classList.remove("hidden");
@@ -28,7 +28,7 @@ function updateStats(){ $("statUsers").textContent=users.length;$("statSubjects"
 function bindNav(){
   document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
   $("mobileNav").onclick=()=>document.querySelector(".sidebar").classList.toggle("open");
-  $("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.href="../auth.html"};
+  $("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.href="auth.html"};
   $("closeModal").onclick=closeModal;
   $("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
   $("newSubject").onclick=()=>subjectForm();
@@ -69,7 +69,7 @@ async function userForm(id){
 <div class="form-field"><label>البريد (للعرض فقط)</label><input disabled value="${esc(u.email)}"></div></div><div class="form-actions"><button class="primary" type="submit">حفظ</button><button class="secondary" type="button" onclick="closeModal()">إلغاء</button></div>`,
 async form=>{const payload={full_name:form.full_name.value,department:form.department.value,phone:form.phone.value,student_code:form.student_code.value,role:form.role.value};const {error}=await sb.from("profiles").update(payload).eq("id",id);if(error)throw error;closeModal();await loadUsers();toast("تم تحديث المستخدم")})
 }
-async function resetUser(email){if(!email)return;const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname.replace(/admin\/admin\.html.*$/,"auth.html")});if(error)errorMsg(error);else toast("تم إرسال رابط إعادة تعيين كلمة السر")}
+async function resetUser(email){if(!email)return;const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname.replace(/admin\.html.*$/,"auth.html")});if(error)errorMsg(error);else toast("تم إرسال رابط إعادة تعيين كلمة السر")}
 async function deleteUser(id){if(!confirm("حذف الحساب نهائيًا؟ لا يمكن التراجع عن هذا الإجراء."))return;const {error}=await sb.rpc("admin_delete_user",{p_user_id:id});if(error)errorMsg(error);else{await loadUsers();updateStats();toast("تم حذف الحساب")}}
 
 async function loadSubjects(){

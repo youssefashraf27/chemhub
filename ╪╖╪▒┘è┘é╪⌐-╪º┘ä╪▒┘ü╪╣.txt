@@ -1,0 +1,19 @@
+كل ملفات ChemistryHub في نفس المكان
+
+ارفع كل الملفات الموجودة في هذا المجلد بجوار بعض على نفس مستوى index.html.
+
+الملفات المهمة:
+- index.html = الصفحة الرئيسية
+- admin.html = لوحة الإدارة
+- admin.css = تنسيق لوحة الإدارة
+- admin.js = برمجة لوحة الإدارة
+- admin-setup.sql = SQL لقاعدة البيانات
+- chemistryhub-logo.png = اللوجو الجديد
+
+لا تحتاج لعمل أي مجلد اسمه admin.
+
+بعد الرفع:
+1) شغّل admin-setup.sql في Supabase SQL Editor مرة واحدة.
+2) اجعل حسابك Admin:
+   UPDATE public.profiles SET role='admin' WHERE email='YOUR_EMAIL';
+3) افتح: /admin.html

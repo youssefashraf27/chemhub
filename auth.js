@@ -47,7 +47,7 @@ $("signupForm").addEventListener("submit",async e=>{
  setBusy(btn,true);
  const {data,error}=await sb.auth.signUp({
    email,password:pass,
-   options:{data:{full_name:name,phone,department:dept},emailRedirectTo:location.origin+location.pathname}
+   options:{data:{full_name:name,phone,department:dept,year_level:dept},emailRedirectTo:location.origin+location.pathname}
  });
  if(error){showAlert(error.message.includes("already registered")?"هذا البريد مسجل بالفعل. جرّب تسجيل الدخول أو استعادة كلمة السر.":error.message);setBusy(btn,false);return}
  if(data.session){
@@ -63,7 +63,7 @@ $("signupForm").addEventListener("submit",async e=>{
 
 async function saveProfile(user,name,phone,dept,email){
  try{
-   await sb.from("profiles").upsert({id:user.id,full_name:name,phone:phone,department:dept,email:email},{onConflict:"id"});
+   await sb.from("profiles").upsert({id:user.id,full_name:name,phone:phone,department:dept,year_level:dept,email:email},{onConflict:"id"});
  }catch(e){console.warn("Profile sync skipped",e)}
 }
 
