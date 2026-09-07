@@ -379,3 +379,21 @@ on conflict (id) do update set
 -- After running this file, promote your account from SQL Editor:
 -- UPDATE public.profiles SET role='admin'
 -- WHERE lower(email)=lower('YOUR_EMAIL_HERE');
+
+
+-- =========================================================
+-- 10) Permissions / PostgREST schema refresh
+-- =========================================================
+-- Make sure the API roles can reach the tables; RLS still controls what
+-- authenticated/anonymous users are actually allowed to do.
+grant usage on schema public to anon, authenticated;
+grant select on public.subjects, public.news to anon, authenticated;
+grant select, insert, update, delete on public.subjects, public.news to authenticated;
+grant select, insert, update, delete on public.notes, public.quizzes, public.questions, public.quiz_results to authenticated;
+grant select, insert, update, delete on public.profiles to authenticated;
+
+-- Identity sequences used by inserts from authenticated clients.
+grant usage, select on all sequences in schema public to authenticated;
+
+-- Ask PostgREST/Supabase to refresh its schema cache after this script.
+notify pgrst, 'reload schema';

@@ -55,7 +55,9 @@ async function init(){
   }
 }
 async function loadAll(){
-  await Promise.all([loadUsers(),loadSubjects(),loadQuizzes(),loadResults(),loadNews(),loadNotes()]);
+  await loadUsers();
+  await Promise.all([loadSubjects(),loadQuizzes(),loadResults(),loadNews()]);
+  await loadNotes();
   updateStats();fillQuizSelect();if($("questionQuizSelect").value)await loadQuestions($("questionQuizSelect").value);
 }
 function updateStats(){ $("statUsers").textContent=users.length;$("statSubjects").textContent=subjects.length;$("statQuizzes").textContent=quizzes.length;$("statResults").textContent=results.length}
@@ -77,7 +79,7 @@ function showView(name){
   $("view-"+name).classList.add("active");
   document.querySelectorAll(".nav-btn").forEach(v=>v.classList.toggle("active",v.dataset.view===name));
   $("viewTitle").textContent=views[name]||"لوحة التحكم";
-  $("sidebar").classList.remove("open");
+  document.querySelector(".sidebar")?.classList.remove("open");
   if(name==="questions")fillQuizSelect();
 }
 function bindFilters(){["subjectYear","subjectDept","subjectTerm"].forEach(id=>$(id).oninput=renderSubjects)}
