@@ -745,114 +745,108 @@ code{
 .dark .account-toggle,.dark .account-dropdown{background:#15211f;border-color:#29403a}.dark .account-summary{border-color:#293b37}.dark .account-dropdown a:hover,.dark .account-dropdown button:hover{background:#1d302c}
 @media(max-width:900px){.account-box{margin-right:0;margin-left:auto}.account-label{display:none}.account-toggle{padding:5px}.account-dropdown{right:auto;left:0}}
 
+
 /* =========================================================
-   RESPONSIVE MOBILE FIXES - FINAL
+   MOBILE ACCOUNT MENU FIX
+   Keeps the account dropdown inside the phone viewport.
    ========================================================= */
-html,body{width:100%;max-width:100%;overflow-x:hidden}
-img,svg,video,iframe{max-width:100%;height:auto}
-input,select,textarea,button{max-width:100%;font-size:16px}
-.container{width:min(1120px,92%)}
-
-@media(max-width:900px){
-  .nav{min-height:64px;position:relative}
-  .topbar{position:sticky}
-  nav{top:64px}
-  .hero-grid{gap:30px}
-  .hero h1{font-size:clamp(34px,9vw,52px)}
-  .section-head h2{font-size:clamp(26px,7vw,34px)}
-  .subject{gap:10px;flex-wrap:wrap}
-  .gpa-box{width:100%}
-  .about-grid{gap:30px}
+html, body{
+  max-width:100%;
+  overflow-x:hidden;
 }
 
-@media(max-width:600px){
-  body{font-size:14px}
-  .container{width:calc(100% - 28px);max-width:none}
-  .nav{min-height:60px;gap:6px}
-  .brand{min-width:0;margin-left:0;gap:7px;font-size:14px;line-height:1.25}
-  .brand>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .brand small{font-size:8px;white-space:nowrap}
-  .brand-icon{width:36px;height:36px;min-width:36px;font-size:19px;border-radius:11px}
-  .menu-btn,.theme-btn{width:38px;height:38px;min-width:38px;font-size:17px}
-  .theme-btn{margin-right:0}
-  .account-box{min-width:0}
-  .account-login{padding:8px 9px;font-size:11px;white-space:nowrap}
-  .account-toggle{max-width:42px}
+@media (max-width:900px){
+  nav#navLinks{
+    box-sizing:border-box;
+    max-width:92%;
+    overflow:visible;
+  }
 
-  nav{top:60px;right:14px;left:14px;width:auto;padding:8px;max-height:calc(100vh - 75px);overflow-y:auto}
-  nav a{padding:10px 12px;font-size:14px}
+  #navLinks .account-box{
+    width:100%;
+    max-width:100%;
+    position:relative;
+    display:flex;
+    justify-content:flex-start;
+    box-sizing:border-box;
+  }
 
-  .top-bar{right:0;width:40px;padding:7px 4px}
-  .social-icons{gap:5px}
-  .social-icons a{width:30px;height:30px;flex-basis:30px;font-size:13px;margin:0}
-  .top-bar::before{left:-12px;width:18px;height:28px;font-size:18px}
+  #navLinks .account-menu{
+    width:100%;
+    max-width:100%;
+    position:relative;
+    box-sizing:border-box;
+  }
 
-  .hero{padding:42px 0 45px}
-  .hero-grid{gap:28px}
-  .hero h1{font-size:clamp(31px,10vw,45px);line-height:1.2}
-  .hero p{font-size:14px;line-height:1.9}
-  .hero-actions{gap:9px;margin-top:20px}
-  .btn{width:100%;padding:11px 14px}
-  .hero-card{padding:22px 16px;border-radius:20px}
-  .flask{font-size:60px}
-  .hero-card h3{font-size:19px}
-  .mini-stats{gap:6px;flex-wrap:wrap}
-  .mini-stats span{padding:7px 9px;flex:1;min-width:75px}
+  #navLinks .account-toggle{
+    max-width:100%;
+    width:auto;
+  }
 
-  .notice-inner{padding:11px 0;font-size:12px;align-items:flex-start}
-  .notice-inner>span{flex:0 0 auto}
-  .section{padding:48px 0}
-  .section-head{margin-bottom:24px}
-  .section-head h2{font-size:27px;line-height:1.35}
-  .section-head p{font-size:13px}
-  .card{padding:18px;border-radius:16px}
-  .years,.tools-grid,.subject-grid,.values{grid-template-columns:1fr}
-  .subject{padding:13px}
-  .subject strong{font-size:13px}
-  .subject small{font-size:11px}
+  #navLinks .account-dropdown{
+    top:calc(100% + 8px);
+    right:0;
+    left:auto;
+    width:min(280px, calc(100vw - 32px));
+    max-width:calc(100vw - 32px);
+    box-sizing:border-box;
+    z-index:10000;
+    overflow:hidden;
+  }
 
-  .gpa-form{gap:9px}
-  .gpa-result{padding:22px 10px}
-  .gpa-result strong{font-size:46px}
-  .course-row{grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
-  .course-row button{grid-column:2;width:100%}
+  #navLinks .account-dropdown a,
+  #navLinks .account-dropdown button{
+    box-sizing:border-box;
+    min-width:0;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
 
-  .about-grid{gap:25px}
-  .values{gap:9px}
-  .values div{padding:14px}
-  .values b{font-size:24px}
-  .footer{padding:22px 0;gap:10px;font-size:12px}
-  .developer{font-size:.9rem!important;line-height:1.8}
+  #navLinks .account-summary{
+    min-width:0;
+    overflow:hidden;
+  }
+
+  #navLinks .account-summary strong,
+  #navLinks .account-summary small{
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
 }
 
-@media(max-width:380px){
-  .container{width:calc(100% - 20px)}
-  .brand{font-size:12px}
-  .brand small{font-size:7px}
-  .brand-icon{width:32px;height:32px;min-width:32px;font-size:17px}
-  .menu-btn,.theme-btn{width:35px;height:35px;min-width:35px}
-  .account-login{font-size:10px;padding:7px 7px}
-  .hero h1{font-size:30px}
-  .section-head h2{font-size:24px}
-  .card{padding:15px}
+@media (max-width:600px){
+  nav#navLinks{
+    top:68px;
+    right:4%;
+    left:4%;
+    width:92%;
+    max-width:92%;
+  }
+
+  #navLinks .account-toggle{
+    min-height:44px;
+    padding:5px 8px;
+  }
+
+  #navLinks .account-avatar{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+  }
+
+  #navLinks .account-dropdown{
+    width:min(270px, calc(100vw - 28px));
+    max-width:calc(100vw - 28px);
+    right:0;
+    left:auto;
+  }
 }
 
-/* Prevent wide admin tables/cards from breaking the viewport */
-.results-table{display:block;overflow-x:auto;white-space:nowrap}
-.item-actions{max-width:100%}
-
-/* AI page and other full-width layouts */
-.ai-layout{width:100%;max-width:1100px}
-.chat-area{min-width:0}
-.message-content{min-width:0}
-.bubble{overflow-wrap:anywhere}
-
-@media(max-width:600px){
-  .ai-layout{height:calc(100vh - 60px)}
-  .chat-area{padding:12px 10px 160px}
-  .message-content{max-width:94%;gap:7px}
-  .bubble{font-size:14px;line-height:1.8}
-  .subject-options{grid-template-columns:1fr;gap:9px;margin:18px auto}
-  .subject-card{padding:15px 12px}
-  .lesson-card{padding:15px;border-radius:16px}
+@media (max-width:380px){
+  #navLinks .account-dropdown{
+    width:calc(100vw - 24px);
+    max-width:calc(100vw - 24px);
+  }
 }
