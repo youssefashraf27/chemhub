@@ -62,6 +62,88 @@
     </script>
 
     <style>
+        /* Mobile-first refinements */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+        img, svg, video, canvas { max-width: 100%; }
+
+        @media (max-width: 767px) {
+            body { font-size: 14px; }
+
+            header { position: sticky; top: 0; }
+            header .container { padding: 8px 10px !important; }
+            header .container > div { gap: 8px !important; }
+            header a.group { min-width: 0; gap: 8px !important; }
+            header a.group > div:first-child {
+                width: 44px !important; height: 44px !important; flex: 0 0 44px;
+            }
+            header h1 { font-size: 17px !important; white-space: nowrap; }
+            header a.group > div:nth-child(2) { min-width: 0; }
+            header a.group > div:nth-child(2) > div { gap: 5px !important; }
+            header a.group > div:nth-child(2) span { font-size: 10px !important; }
+            header .flex.items-center.gap-3 { gap: 6px !important; flex-shrink: 0; }
+            #auth-btn { padding: 8px 11px !important; font-size: 12px !important; }
+            #mobile-menu-btn { width: 38px !important; height: 38px !important; font-size: 20px !important; }
+
+            .hero-bg {
+                height: 360px !important;
+                min-height: 360px !important;
+                background-position: center center !important;
+                background-size: cover !important;
+            }
+            .hero-bg > div { padding-left: 12px !important; padding-right: 12px !important; }
+            .hero-bg h2, .hero-bg h1 {
+                font-size: clamp(24px, 8vw, 34px) !important;
+                line-height: 1.25 !important;
+            }
+            .hero-bg p {
+                font-size: 12px !important;
+                line-height: 1.8 !important;
+                max-width: 92vw !important;
+                margin-left: auto; margin-right: auto;
+            }
+            .hero-bg button {
+                width: min(88vw, 320px) !important;
+                min-height: 52px !important;
+                padding: 11px 22px !important;
+                font-size: 17px !important;
+            }
+
+            .container { width: 100% !important; max-width: 100% !important; }
+            section { max-width: 100%; overflow: hidden; }
+            .grid { min-width: 0; }
+            .card-hover { transform: none !important; }
+
+            /* Prevent long cards, tables and controls from overflowing */
+            table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            pre, code { max-width: 100%; overflow-x: auto; }
+            input, select, textarea, button { max-width: 100%; }
+
+            /* Modals fit smaller screens */
+            #login-modal, #celebration-popup-modal, #balloons-score-modal { padding: 10px !important; }
+            #login-box, #celebration-modal-card, #balloons-score-card {
+                width: 100% !important; max-width: 100% !important;
+                padding: 18px !important; border-radius: 22px !important;
+            }
+
+            /* Hide decorative celebration/game elements on mobile */
+            #celebration-top-banner, #balloons-game-hud, #celebration-balloons-container, #balloons-score-modal, #toggle-balloons-btn {
+                display: none !important;
+            }
+
+            .news-ticker-content { animation-duration: 18s; }
+        }
+
+        @media (max-width: 390px) {
+            header a.group > div:first-child { width: 40px !important; height: 40px !important; flex-basis: 40px; }
+            header h1 { font-size: 15px !important; }
+            header a.group > div:nth-child(2) span { font-size: 9px !important; }
+            #auth-btn { padding: 7px 9px !important; }
+            #mobile-menu-btn { width: 36px !important; height: 36px !important; }
+            .hero-bg { height: 330px !important; min-height: 330px !important; }
+            .hero-bg button { width: 92vw !important; }
+        }
+
         body {
             font-family: 'Cairo', sans-serif;
             scroll-behavior: smooth;
@@ -83,7 +165,7 @@
         }
 
         .hero-bg {
-            background-image: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.3)), url('https://i.postimg.cc/m2Q1nFZY/photo-5800909411713748647-w.jpg');
+            background-image: linear-gradient(rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.3)), url('assiut-campus.jpg');
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
@@ -620,6 +702,9 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2080659114243028" crossorigin="anonymous"></script>
 
 
+<style id="balloons-disabled">
+#balloons-game-hud, #celebration-balloons-container, #balloons-score-modal, #toggle-balloons-btn { display:none !important; }
+</style>
 <style id="education-overrides">
 /* Education customization: keep the existing Cairo visual design, remove Science-only flows. */
 #specialized-years-view,
@@ -751,55 +836,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         </div>
     </div>
-
-    <!-- Balloons Game Score HUD (Visible while popping balloons) -->
-    <div id="balloons-game-hud" class="fixed top-4 left-1/2 -translate-x-1/2 z-[95] pointer-events-none transition-all duration-300 opacity-0 -translate-y-4 w-[94%] max-w-md">
-        <div class="bg-dark-900/95 border-2 border-cuGreen-500/70 shadow-[0_0_35px_rgba(34,197,94,0.45)] backdrop-blur-xl px-4 py-2.5 rounded-2xl flex flex-col gap-1.5 text-white">
-            <div class="flex items-center justify-between text-xs font-bold gap-2 flex-wrap">
-                <div class="flex items-center gap-1.5 text-cuGreen-400 truncate">
-                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-cuGreen-500/20 text-xs shrink-0 animate-pulse">🎯</span>
-                    <span id="hud-level-badge" class="truncate font-extrabold">المستوى 1 / 6: سنة أولى علوم 🧪</span>
-                </div>
-                <div class="text-gray-300 shrink-0 text-xs">
-                    فرقعت: <strong id="game-popped-count" class="text-cuGreen-400 font-extrabold text-sm transition-transform inline-block">0</strong> / <strong id="game-total-count" class="text-cuGold-400 font-extrabold text-sm">10</strong>
-                    <span class="text-[10px] text-gray-400 mr-1">(المطلوب: <span id="hud-target-count" class="text-white font-bold">5</span>)</span>
-                </div>
-            </div>
-            <!-- Animated Time Progress Bar -->
-            <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-700/50">
-                <div id="game-time-progress" class="h-full bg-gradient-to-r from-cuGreen-500 via-emerald-400 to-cuGold-400 transition-all duration-300 w-full rounded-full"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Floating Balloons Container -->
-    <div id="celebration-balloons-container"></div>
-
-    <!-- Balloons Game Score Results Modal (Handles Level Pass, Level Fail, and Grand Finale) -->
-    <div id="balloons-score-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[130] hidden opacity-0 flex items-center justify-center p-4 transition-all duration-300 overflow-y-auto">
-        <div id="balloons-score-card" class="bg-dark-900/95 border-2 border-cuGreen-500/60 p-6 md:p-8 rounded-3xl shadow-[0_0_60px_rgba(34,197,94,0.35)] max-w-lg w-full relative text-center backdrop-blur-2xl transform scale-95 transition-all duration-300 overflow-hidden my-auto max-h-[92vh] flex flex-col justify-between">
-
-            <!-- Ambient Glow -->
-            <div class="absolute -top-16 -right-16 w-36 h-36 bg-cuGreen-500/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="absolute -bottom-16 -left-16 w-36 h-36 bg-cuGold-500/20 rounded-full blur-2xl pointer-events-none"></div>
-
-            <!-- Close Button (X) -->
-            <button onclick="closeBalloonsScoreModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white bg-dark-800 hover:bg-red-500/20 p-2 rounded-full h-8 w-8 flex items-center justify-center transition-all border border-gray-700/60 hover:border-red-500/40 cursor-pointer z-20"
-                title="إغلاق">
-            <i class="fas fa-times text-xs"></i>
-        </button>
-
-            <!-- Dynamic Content Injected by JavaScript -->
-            <div id="balloons-modal-body" class="overflow-y-auto pr-1"></div>
-
-        </div>
-    </div>
-
-    <!-- Balloons Game Start / Replay Button (Bottom Left) -->
-    <button id="toggle-balloons-btn" onclick="launchLevelGame(null, true)" title="تحدي لعبة البلالين (6 مستويات)" class="fixed bottom-6 left-6 z-40 bg-dark-900/90 hover:bg-dark-800 text-cuGreen-400 border border-cuGreen-500/50 backdrop-blur-md px-3.5 py-2 rounded-full text-xs font-bold shadow-[0_0_15px_rgba(34,197,94,0.25)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer">
-    <span class="text-base" id="balloons-toggle-icon">🎯</span>
-    <span id="balloons-toggle-text" class="hidden sm:inline">لعبة البلالين (المستوى 1)</span>
-</button>
 
     <!-- Celebration Top Announcement Banner (20K Milestone) with Green/Black Animated Moving Squares -->
     <div id="celebration-top-banner" class="celebration-banner-wrapper text-white relative z-40">
@@ -1561,13 +1597,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="relative group flex-shrink-0">
                         <div class="absolute -inset-1 bg-gradient-to-r from-cuGold-500 to-cuPurple-glow rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                         <div class="relative w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-dark-800 shadow-2xl bg-dark-900 flex items-center justify-center">
-                            <img src="https://i.postimg.cc/L5xfc6LG/dean.jpg" alt="أ.د. حسن حويل" class="w-full h-full object-contain">
+                            <img src="https://i.postimg.cc/SN8cz3XS/tnzyl.jpg" alt="أ.د. سهير رمضان فهمي" class="w-full h-full object-contain">
                         </div>
                     </div>
 
                     <div class="text-center md:text-right flex-1 z-10">
                         <h3 class="text-cuGold-500 font-bold text-lg mb-2 uppercase tracking-wide">رسالة شكر وتقدير</h3>
-                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">الأستاذ الدكتور / حسن حويل</h2>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">الأستاذة الدكتورة / سهير رمضان فهمي</h2>
                         <p class="text-cuGreen-400 font-semibold text-xl mb-6">عميد كلية التربية - جامعة أسيوط</p>
                         <p class="text-gray-300 leading-relaxed mb-6 text-lg">
                             يتقدم فريق EduChem Assiut وجميع طلاب الكلية بخالص الشكر والتقدير لسيادتكم على جهودكم العظيمة وتفانيكم المستمر في خدمة الصرح التعليمي، ودعمكم الدائم للطلاب والباحثين للارتقاء بمستوى الكلية لتظل دائماً منارة للعلم والعلماء.
@@ -1589,7 +1625,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     <div class="text-center md:text-right flex-1 z-10">
                         <h3 class="text-blue-400 font-bold text-lg mb-2 uppercase tracking-wide">شكر وعرفان</h3>
-                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">الأستاذة الدكتورة / هويدا محمد</h2>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">الأستاذة الدكتورة / مها الخازندار</h2>
                         <p class="text-cuGold-500 font-semibold text-xl mb-6">وكيل الكلية لشؤون التعليم والطلاب</p>
                         <p class="text-gray-300 leading-relaxed mb-6 text-lg">
                             نتقدم بأسمى آيات الشكر والامتنان لسيادتكم على جهودكم الدؤوبة في رعاية أبنائكم الطلاب، وحرصكم الدائم على تذليل كافة العقبات وتطوير المنظومة التعليمية، مما كان له بالغ الأثر في خلق بيئة أكاديمية متميزة وداعمة للجميع.
@@ -13316,7 +13352,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 initCelebrationSquaresCanvas();
                 checkAndShowCelebrationPopup(); // يظهر بعد ثانية واحدة لمرة واحدة
                 updateBottomButtonLabel();
-                launchLevelGame(null, false); // إطلاق بلالين احتفالية تلقائية لمدة 5 ثوانٍ دون إجبار على الرسوب
+                // Balloon game disabled.
             }
 
             if (document.readyState === 'loading') {
