@@ -11,14 +11,47 @@ function errorMsg(e){toast("حدث خطأ: "+(e?.message||"تعذر تنفيذ �
 function fmtDate(v){return v?new Date(v).toLocaleString("ar-EG",{dateStyle:"medium",timeStyle:"short"}):"—"}
 
 async function init(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){location.href="auth.html";return}
-  const {data:profile,error}=await sb.from("profiles").select("role,full_name,email").eq("id",session.user.id).maybeSingle();
-  if(error||!profile||profile.role!=="admin"){alert("ليس لديك صلاحية الدخول إلى لوحة الإدارة.");location.href="index.html";return}
-  currentAdmin=session.user;
-  $("adminEmail").textContent=profile.full_name?`${profile.full_name} — ${session.user.email}`:session.user.email;
-  $("loading").classList.add("hidden");$("app").classList.remove("hidden");
-  bindNav();bindFilters();await loadAll();
+  try{
+    const {data:{session},error:sessionError}=await sb.auth.getSession();
+    if(sessionError) throw sessionError;
+    if(!session){location.href="auth.html";return}
+
+    // Check admin through the SECURITY DEFINER RPC first.
+    // This avoids RLS/policy conflicts when reading the profile row.
+    const {data:isAdmin,error:adminError}=await sb.rpc("is_admin");
+    if(adminError){
+      console.error("Admin check RPC error:",adminError);
+      throw new Error("تعذر التحقق من صلاحيات المدير: "+adminError.message);
+    }
+    if(isAdmin !== true){
+      alert("ليس لديك صلاحية الدخول إلى لوحة الإدارة. تأكد أن role في profiles = admin.");
+      location.href="index.html";
+      return;
+    }
+
+    const {data:profile}=await sb.from("profiles")
+      .select("role,full_name,email")
+      .eq("id",session.user.id)
+      .maybeSingle();
+
+    currentAdmin=session.user;
+    $("adminEmail").textContent=
+      profile?.full_name
+        ? `${profile.full_name} — ${session.user.email}`
+        : session.user.email;
+
+    $("loading").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    bindNav();
+    bindFilters();
+    await loadAll();
+  }catch(e){
+    console.error(e);
+    $("loading").innerHTML=
+      '<div class="spinner"></div><p style="max-width:520px;text-align:center;color:#c53b3b">'+
+      esc(e?.message||"تعذر التحقق من صلاحيات الإدارة.")+
+      '</p>';
+  }
 }
 async function loadAll(){
   await Promise.all([loadUsers(),loadSubjects(),loadQuizzes(),loadResults(),loadNews(),loadNotes()]);
@@ -67,7 +100,7 @@ async function userForm(id){
 <div class="form-field"><label>الكود الجامعي</label><input name="student_code" value="${esc(u.student_code)}"></div>
 <div class="form-field"><label>الصلاحية</label><select name="role"><option value="student" ${u.role!=="admin"?"selected":""}>طالب</option><option value="admin" ${u.role==="admin"?"selected":""}>Admin</option></select></div>
 <div class="form-field"><label>البريد (للعرض فقط)</label><input disabled value="${esc(u.email)}"></div></div><div class="form-actions"><button class="primary" type="submit">حفظ</button><button class="secondary" type="button" onclick="closeModal()">إلغاء</button></div>`,
-async form=>{const payload={full_name:form.full_name.value,department:form.department.value,phone:form.phone.value,student_code:form.student_code.value,role:form.role.value};const {error}=await sb.from("profiles").update(payload).eq("id",id);if(error)throw error;closeModal();await loadUsers();toast("تم تحديث المستخدم")})
+async form=>{const payload={full_name:form.full_name.value,department:form.department.value,year_level:form.department.value,phone:form.phone.value,student_code:form.student_code.value,role:form.role.value};const {error}=await sb.from("profiles").update(payload).eq("id",id);if(error)throw error;closeModal();await loadUsers();toast("تم تحديث المستخدم")})
 }
 async function resetUser(email){if(!email)return;const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname.replace(/admin\.html.*$/,"auth.html")});if(error)errorMsg(error);else toast("تم إرسال رابط إعادة تعيين كلمة السر")}
 async function deleteUser(id){if(!confirm("حذف الحساب نهائيًا؟ لا يمكن التراجع عن هذا الإجراء."))return;const {error}=await sb.rpc("admin_delete_user",{p_user_id:id});if(error)errorMsg(error);else{await loadUsers();updateStats();toast("تم حذف الحساب")}}

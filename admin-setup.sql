@@ -201,12 +201,17 @@ security definer
 set search_path = public
 as $$
 begin
-  if coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid) <> new.id then
+  -- SQL Editor / direct administrative operations have no auth.uid()
+  -- and must be allowed to set the initial admin role.
+  if auth.uid() is null then
     return new;
   end if;
-  if not public.is_admin() then
+
+  -- A normal user cannot change their own role.
+  if auth.uid() = old.id and not public.is_admin() then
     new.role := old.role;
   end if;
+
   return new;
 end;
 $$;
@@ -366,3 +371,11 @@ on conflict (id) do update set
 -- 8) After this file succeeds, run ONE separate command to make your account admin:
 -- UPDATE public.profiles SET role='admin' WHERE email='YOUR_EMAIL';
 -- =========================================================
+
+
+-- =========================================================
+-- 9) Admin bootstrap note
+-- =========================================================
+-- After running this file, promote your account from SQL Editor:
+-- UPDATE public.profiles SET role='admin'
+-- WHERE lower(email)=lower('YOUR_EMAIL_HERE');
